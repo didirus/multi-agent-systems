@@ -126,7 +126,10 @@ to update-intentions
       ]
     ]
     ; if the vacuum has the desire to turn off, clear all intentions
-    [ask vacuums [ set intention_loc 0 ]]
+    [
+      ask vacuums [ set intention_act "stop"]
+      ask vacuums [ set intention_loc 0 ]
+    ]
 end
 
 
@@ -204,7 +207,7 @@ dirt_pct
 dirt_pct
 0
 100
-43
+15
 1
 1
 NIL
@@ -312,6 +315,17 @@ MONITOR
 295
 The current intention loc.
 [intention_loc] of vacuum 0
+17
+1
+11
+
+MONITOR
+12
+340
+199
+385
+The current intention action.
+[intention_act] of vacuum 0
 17
 1
 11

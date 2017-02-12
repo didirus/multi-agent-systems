@@ -161,8 +161,9 @@ to update-intentions
           ask vacuums [ set intention_loc new_intention_loc ]
         ]
 
-        ; if the vacuum has the desire to turn off, clear all intention_locs
+        ; if the vacuum has the desire to turn off, clear all intentions
         [
+          ask vacuums [ set intention_act "stop"]
           ask vacuums [ set intention_loc 0 ]
         ]
      ]
@@ -259,7 +260,7 @@ dirt_pct
 dirt_pct
 0
 100
-70
+15
 1
 1
 NIL
