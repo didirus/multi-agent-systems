@@ -24,19 +24,17 @@ globals [total_dirty time]
 
 
 ; --- Agents ---
-; The following types of agent (called 'breeds' in NetLogo) are given. (Note: in Assignment 1.3, you could implement the garbage can as an agent as well.)
-;
 ; 1) vacuums: vacuum cleaner agents.
 breed [vacuums vacuum]
 
 
 ; --- Local variables ---
-; The following local variables are given. (Note: you might need additional local variables (e.g., to keep track of how many pieces of dirt are in the bag in Assignment 3.3). You could represent this as another belief, but it this is inconvenient you may also use another name for it.)
-;
 ; 1) beliefs: the agent's belief base about locations that contain dirt
 ; 2) desire: the agent's current desire
-; 3) intention: the agent's current intention
-vacuums-own [beliefs desire intention]
+; 3) intention_loc: the agent's current intention location.
+; 4) intention_act: the agent's current intention action
+vacuums-own [beliefs desire intention_loc intention_act]
+
 
 ; --- Setup ---
 to setup
@@ -60,6 +58,7 @@ to go
   tick
 end
 
+
 ; --- Setup patches ---
 to setup-patches
 
@@ -79,7 +78,8 @@ to setup-vacuums
   ; create vacuum at random location
   create-vacuums 1
     [ set color red
-    setxy random-xcor random-ycor ]
+    setxy random-xcor random-ycor
+    set intention_act "go" ]
 end
 
 
@@ -101,10 +101,6 @@ end
 
 ; --- Update desires ---
 to update-beliefs
- ; You should update your agent's beliefs here.
- ; At the beginning your agent will receive global information about where all the dirty locations are.
- ; This belief set needs to be updated frequently according to the cleaning actions: if you clean dirt, you do not believe anymore there is a dirt at that location.
- ; In Assignment 1.3, your agent also needs to know where is the garbage can.
 
   ; set beliefs of all (one) vacuums
   ask vacuums [ set beliefs patches with [ pcolor = brown ] ]
@@ -117,25 +113,20 @@ to update-intentions
   ; check the vacuum desire
   ifelse [desire] of vacuum 0 = "clean"
 
-      ; if the vacuum has the desire to clean, update intentions
-      [ifelse [intention] of vacuum 0 != 0
+    ; if the vacuum has the desire to clean, update intentions
+    [
+      if [intention_loc] of vacuum 0 = [patch-here] of vacuum 0
+        [ask vacuum 0 [set intention_act "clean"]]
 
-        ; if it has already an intention which is fulfilled already, create a new intention
-        [if ([pcolor] of [intention] of vacuum 0 = white)
-          [
-            let new_intention one-of [beliefs] of vacuum 0
-            ask vacuums [ set intention new_intention ]
-          ]
-        ]
-        [
-          ; if it does not have an intention yet, create its first intention
-          let new_intention one-of [beliefs] of vacuum 0
-          ask vacuums [ set intention new_intention ]
-
-        ]
+      ; if it does not have an intention yet, create its intention
+      if [intention_loc] of vacuum 0 = 0
+      [
+        let new_intention one-of [beliefs] of vacuum 0
+        ask vacuums [ set intention_loc new_intention ]
       ]
-      ; if the vacuum has the desire to turn off, clear all intentions
-      [ ask vacuums [ set intention 0 ]]
+    ]
+    ; if the vacuum has the desire to turn off, clear all intentions
+    [ask vacuums [ set intention_loc 0 ]]
 end
 
 
@@ -145,39 +136,45 @@ to execute-actions
   clean-floor
 end
 
+
 ; --- Move vacuum ---
 to move-vacuum
 
   ; if it has an intention, move towards that intention
-  if [intention] of vacuum 0 != 0
-    [ask turtles [
-      facexy [pxcor] of [intention] of vacuum 0 [pycor] of [intention] of vacuum 0
+  if [intention_act] of vacuum 0 = "go"
+    [
+      ask turtles [
+      facexy [pxcor] of [intention_loc] of vacuum 0 [pycor] of [intention_loc] of vacuum 0
       forward 1
     ]]
 end
 
+
 ; --- Clean floor ---
 to clean-floor
 
-  ; if the ground underneath the vacuum is dirty, clean it
-  ask turtles [
-    if pcolor = brown [
-      set pcolor white
-      set total_dirty total_dirty - 1
-    ]]
+  ; if the intention of the vacuum is to clean
+  if [intention_act] of vacuum 0 = "clean"
+    [
+      ; if the ground underneath the vacuum is dirty, clean it
+      ask turtles [
+        if pcolor = brown [
+          set pcolor white
+          set total_dirty total_dirty - 1
+          set intention_act "go"
+          set intention_loc 0
+        ]
+      ]
+    ]
 end
-
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 211
 10
-809
-609
--1
--1
+811
+631
+12
+12
 23.6
 1
 10
@@ -207,7 +204,7 @@ dirt_pct
 dirt_pct
 0
 100
-12.0
+43
 1
 1
 NIL
@@ -311,10 +308,10 @@ time
 MONITOR
 12
 250
-200
+199
 295
-The agent's current intention.
-[intention] of vacuum 0
+The current intention loc.
+[intention_loc] of vacuum 0
 17
 1
 11
@@ -708,8 +705,9 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
 @#$#@#$#@
-NetLogo 6.0
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -725,6 +723,7 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
+
 @#$#@#$#@
 0
 @#$#@#$#@

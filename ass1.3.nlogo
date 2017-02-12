@@ -16,26 +16,24 @@
 
 
 ; --- Global variables ---
-; The following global variables are given.
-;
 ; 1) total_dirty: this variable represents the amount of dirty cells in the environment.
 ; 2) time: the total simulation time.
 globals [total_dirty time]
 
 
 ; --- Agents ---
-; The following types of agent (called 'breeds' in NetLogo) are given. (Note: in Assignment 1.3, you could implement the garbage can as an agent as well.)
-;
 ; 1) vacuums: vacuum cleaner agents.
+; 2) containers: dirt storing agents.
 breed [vacuums vacuum]
 breed [containers container]
 
 ; --- Local variables ---
-; The following local variables are given. (Note: you might need additional local variables (e.g., to keep track of how many pieces of dirt are in the bag in Assignment 3.3). You could represent this as another belief, but it this is inconvenient you may also use another name for it.)
-;
-; 1) beliefs: the agent's belief base about locations that contain dirt
-; 2) desire: the agent's current desire
-; 3) intention_loc: the agent's current intention_loc
+; 1) beliefs: the agent's belief base about locations that contain dirt.
+; 2) desire: the agent's current desire.
+; 3) intention_loc: the agent's current intention location.
+; 4) intention_act: the agent's current intention action
+; 5) collected_dirt: the agent's current amount of collected_dirt
+; 6) nearest: the agent's current nearest dirt tile
 vacuums-own [beliefs desire intention_loc intention_act collected_dirt nearest]
 
 ; --- Setup ---
@@ -84,9 +82,6 @@ to setup-vacuum
     setxy random-xcor random-ycor
     set collected_dirt 0
     set intention_act "go" ]
-  ;
-  ;ask vacuum 0
-   ; [ 0]
 end
 
 ; --- Setup container ---
@@ -94,7 +89,10 @@ to setup-container
 
   ; create container at random location
   create-containers 1
-    [ setxy random-xcor random-ycor ]
+    [
+      set color blue
+      setxy random-xcor random-ycor
+    ]
 end
 
 
@@ -116,10 +114,6 @@ end
 
 ; --- Update desires ---
 to update-beliefs
- ; You should update your agent's beliefs here.
- ; At the beginning your agent will receive global information about where all the dirty locations are.
- ; This belief set needs to be updated frequently according to the cleaning actions: if you clean dirt, you do not believe anymore there is a dirt at that location.
- ; In Assignment 1.3, your agent also needs to know where is the garbage can.
 
   ; set beliefs of all (one) vacuums
   ask vacuums [ set beliefs patches with [ pcolor = brown ] ]
@@ -129,50 +123,56 @@ end
 ; --- Update intention_locs ---
 to update-intentions
 
-  ; if full;
+  ; if full
   ifelse [collected_dirt] of vacuum 0 >= bag_size
-
     [
       ifelse [patch-here] of vacuum 0 = [patch-here] of container 1
-        [; if at the container:
-          ask vacuum 0 [ set intention_act "empty"
-          print intention_act]]
+        [
+          ; if at the container:
+          ask vacuum 0 [ set intention_act "empty"]
+        ]
 
-        [; if not at the container yet:
+        ; if not at the container yet:
+        [
+          ;clear intention_locs
+          ask vacuums [ set intention_loc 0 ]
 
-            ;clear intention_locs
-           ask vacuums [ set intention_loc 0 ]
+          ; make intention_loc to go to container
+          let new_intention_loc [patch-here] of container 1
+          ask vacuums [ set intention_loc new_intention_loc ]
+        ]
+    ]
 
-           ; make intention_loc to go to container
-           let new_intention_loc [patch-here] of container 1
-           ask vacuums [ set intention_loc new_intention_loc ]] ]
-
-  ; else; not full:
-
-    ; check the vacuum desire
-    [ifelse [desire] of vacuum 0 = "clean"
-
-        ;check location
-        ; if location is intention_loc location
-        ; intention_loc = clean
+    ; else, not full
+    [
+      ; check the vacuum desire
+      ifelse [desire] of vacuum 0 = "clean"
 
         ; if the vacuum has the desire to clean, update intention_locs
         [
-        if [intention_loc] of vacuum 0 = [patch-here] of vacuum 0
-           [ask vacuum 0 [ set intention_act "clean"]]
+          if [intention_loc] of vacuum 0 = [patch-here] of vacuum 0
+            [ask vacuum 0 [ set intention_act "clean"]]
 
-        check-nearest
-        let new_intention_loc [nearest] of vacuum 0
-        ask vacuums [ set intention_loc new_intention_loc ]]
+          ; update nearest tile property of vacuum
+          check-nearest
+
+          ; update intention location of vacuum to nearest tile
+          let new_intention_loc [nearest] of vacuum 0
+          ask vacuums [ set intention_loc new_intention_loc ]
+        ]
 
         ; if the vacuum has the desire to turn off, clear all intention_locs
-        [ ask vacuums [ set intention_loc 0 ]]]
-;  print [intention_loc] of vacuum 0
+        [
+          ask vacuums [ set intention_loc 0 ]
+        ]
+     ]
 end
 
 ; --- Check nearest ---
 to check-nearest
   let dirt_tiles [beliefs] of vacuum 0
+
+  ; calculate nearest dirt tile using euclidian distance between vacuum and each dirt tile
   let this_nearest min-one-of dirt_tiles [sqrt( (pycor - [ycor] of vacuum 0) ^ 2 + (pxcor - [xcor] of vacuum 0) ^ 2 )]
   ask vacuum 0 [ set nearest this_nearest ]
 end
@@ -188,7 +188,6 @@ end
 to move-vacuum
 
   ; if it has an intention_loc, move towards that intention_loc
-;  if [intention_loc] of vacuum 0 != 0
    if [intention_act] of vacuum 0 = "go"
     [ask vacuums [
       facexy [pxcor] of [intention_loc] of vacuum 0 [pycor] of [intention_loc] of vacuum 0
@@ -199,6 +198,7 @@ end
 ; --- Clean floor ---
 to clean-floor
 
+  ; if the intention of the vacuum is to clean
   if [collected_dirt] of vacuum 0 < bag_size and [intention_act] of vacuum 0 = "clean"
 
       ; if the ground underneath the vacuum is dirty, clean it
@@ -222,17 +222,14 @@ to empty
        set intention_act "go"
        set intention_loc 0]]
 end
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-211
+239
 10
-809
-609
--1
--1
+839
+631
+12
+12
 23.6
 1
 10
@@ -262,7 +259,7 @@ dirt_pct
 dirt_pct
 0
 100
-70.0
+70
 1
 1
 NIL
@@ -303,10 +300,10 @@ NIL
 1
 
 MONITOR
-12
-115
-198
-160
+11
+148
+197
+193
 Number of dirty cells left.
 total_dirty
 17
@@ -331,10 +328,10 @@ NIL
 1
 
 MONITOR
-12
-160
-198
-205
+11
+193
+197
+238
 The agent's current desire.
 [desire] of vacuum 0
 17
@@ -342,10 +339,10 @@ The agent's current desire.
 11
 
 MONITOR
-12
-205
-199
-250
+11
+238
+198
+283
 The agent's current belief base.
 [beliefs] of vacuum 0
 1000
@@ -353,10 +350,10 @@ The agent's current belief base.
 11
 
 MONITOR
-12
-340
-200
-385
+11
+328
+199
+373
 Total simulation time.
 time
 17
@@ -364,10 +361,10 @@ time
 11
 
 MONITOR
-12
-295
-200
-340
+11
+283
+199
+328
 Number of collected dirt
 [collected_dirt] of vacuum 0
 17
@@ -375,10 +372,10 @@ Number of collected dirt
 11
 
 MONITOR
-15
-391
-197
-436
+11
+373
+193
+418
 NIL
 [intention_act] of vacuum 0
 17
@@ -386,10 +383,10 @@ NIL
 11
 
 MONITOR
-46
-453
-228
-498
+11
+417
+193
+462
 NIL
 [intention_loc] of vacuum 0
 17
@@ -397,15 +394,15 @@ NIL
 11
 
 SLIDER
-12
-258
-184
-291
+11
+115
+183
+148
 bag_size
 bag_size
 0
 10
-8.0
+8
 1
 1
 NIL
@@ -800,8 +797,9 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
 @#$#@#$#@
-NetLogo 6.0
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -817,6 +815,7 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
+
 @#$#@#$#@
 0
 @#$#@#$#@
