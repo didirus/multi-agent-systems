@@ -12,67 +12,19 @@ buses-own [
 
   ; New local variables for students.
   ; You can create any new local variable you want. Just declare them here.
-  bus_route
-  bus_stop_counter
-  capacity
 
 ]
-
+ 
 globals [graph]
 
 to init-buses
   ; Initialize your agents here.
+
   ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
-  
   set graph [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
-  set bus_route [3 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 22 12 20 9 8 2 8 6 8 9 3 4 5]
-  set bus_stop_counter 1 ; keeps track of the position on the route
-  set next_stop item 1 bus_route ; initialise the first destionation of bus
-  
-  ; define maximum capacity of bus
-  if bus_type = 1 [set capacity bus_type1_capacity]
-  if bus_type = 2 [set capacity bus_type2_capacity]
-  if bus_type = 3 [set capacity bus_type3_capacity]
-  
 end
 
 to execute-actions
-  ; create multiple small buses based on ticks (delay) 
-  if ticks <= 149
-  [
-    if ticks mod 30 = 0
-    [ add-bus 1]
-  ]
-  
-  go-to-next-stop 
-end
-  
-to go-to-next-stop
-  ; it it reaches the next stop, pick and drop passengers
-  if next_stop = -1 
-    [
-      ; indicate next stop in route
-      set bus_stop_counter bus_stop_counter + 1
-      
-      ; drop passengers
-      foreach bus_passengers
-        [ 
-          if item 1 ? = current_stop 
-          [drop-off-passenger first ? ]
-        ]
-    
-      ; pick up passengers
-      if length bus_passengers < capacity
-      [foreach get-passengers-at-stop current_stop
-        [ if length bus_passengers < capacity 
-          [pick-up-passenger first ? ]]   
-      ] 
-    ]
-  
-  ; if completed route, reset route
-  if bus_stop_counter = length bus_route [set bus_stop_counter 1]
-  set next_stop item bus_stop_counter bus_route
-  
-  ; go to next stop
-  travel-to next_stop
+  ; Add decision making strategies for your agents here.
+  ; You are allowed to use the global variable 'ticks'.
 end

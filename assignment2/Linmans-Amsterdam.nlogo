@@ -149,7 +149,7 @@ end
 
 to create-world
   ;World's max-pxcor and max-pycor: 40,30.
-  import-drawing "adam-map.png"
+  import-drawing "amsterdam-new-map.png"
   create-bus-stops
 end
 
