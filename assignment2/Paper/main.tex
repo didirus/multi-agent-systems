@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+% \usepackage{fullpage}
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=40mm,
+ right=40mm,
+ top=30mm,
+ }
+
+\title{Week 2 - Multi-agent Systems}
+\author{Jasper Linmans 10249060\\Jasper Driessens 11349026\\Diede Rusticus 10909486}
+\date{February 2017}
+
+\begin{document}
+
+\maketitle
+
+\section*{Stategy}
+This weeks goal was to implement a first version of the multi-agent transportation system in which vehicles
+pick up passengers, travel to the final destination and drop off passengers according to a fixed schedule.
+\begin{description}
+\item[Fixed route]
+    All buses start at the same position at ``Centraal Station" and follow a fixed route. This route ends where it started, so buses will circulate around the graph. All bus stops are visited at least once in this route with a maximum of two times. (Due to the graph structure of the map, it is impossible to start at any initial position and only visit each station once.) In the iterative process of this assignment it would be interesting to measure the trade-off between the costs of using multiple buses each with their distinct routes and the average traveling time of passengers (but currently we don't do anything with this).
+\item[Multiple buses]
+    Every 30 ticks an extra bus is bought with a maximum of 5 buses. Because of the fixed start position of every bus and the delay of 30 ticks, the buses never simultaneously arrive at the same bus stop.
+\item[Dropping off passengers]
+    Each bus checks, at each bus stop, if it carries passengers with the wish to be dropped off at the current station. In order to do this, the bus loops through all of its passengers (and checks their destination) to make sure it does not miss any.
+\item[Picking up passengers]
+    Buses can be differentiated by their type. Each type is characterized by the amount of passengers it can take on. At each bus stop, each bus picks up all waiting passengers until its maximum capacity is reached. When the maximum capacity of passengers was already reached, (and no passenger is at its destination yet), the bus continues to the next bus stop without picking up new passengers.
+\end{description}
+
+\section*{Next week}
+    The goal is to implement a version in which vehicles exchange messages with each other according to a self-defined protocol/ontology. We are going to implement a BDI approach, in which each bus stores its beliefs about the location of each passenger locally. Buses then share their beliefs to create the emerging information flow of the system.
+\end{document}
