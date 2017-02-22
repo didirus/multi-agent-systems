@@ -1,0 +1,9 @@
+;to manage-problems
+;  if length bus_passengers = capacity 
+;  [ask-for-help] ; send message
+;  
+;end
+;
+;to read-inbox
+;  
+;end

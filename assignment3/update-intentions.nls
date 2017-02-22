@@ -1,0 +1,44 @@
+to update-intententions
+  
+  ifelse desire = "transport"
+  
+    ; if desire transport
+    [ 
+      ; if i'm at a busstop:
+      ifelse next_stop = -1 
+
+      [
+        ;if position == one of the locations of its passengers, int_act: drop off
+        set flag False
+        foreach bus_passengers      
+        [  ifelse item 1 ? = current_stop
+           [set intention_act "drop-off"
+             set flag True
+           ]
+           [if at_junction and not member? item 1 ? bus_route
+             [set intention_act "drop-off"
+             set flag True]
+           ]
+        ]
+        if flag = False
+        [foreach get-passengers-at-stop current_stop ;for all waiting passengers
+          [if member? item 1 ? bus_route ;if destination is on my route;
+            [set intention_act "pick-up"] ;intention = pick up
+           ;[foreach table:keys bus_routes ;for all other busroutes
+           ;  [if ? != bus_route_id 
+           ;    [if member? current_stop ? ;if my route crosses here with another route
+          ]
+        ]
+      ]
+      [
+        set intention_act "go"
+        set intention_loc next_stop       
+      ]
+    ]
+    ; if the bus has the desire to turn off, clear all intentions
+    [
+      set intention_act "stop"
+      set intention_loc 0 
+    ]
+  
+end

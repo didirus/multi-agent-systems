@@ -1,0 +1,69 @@
+extensions[table]
+buses-own [
+  ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
+  bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
+  bus_type        ; The type of a given agent (bus). 1 means "small", 2 means "medium" and 3 means "large".
+    
+  ; Dynamic, read-only variables. These values may change over time. You can read them, but you cannot change them.
+  inbox           ; List containing all the incoming messages (a given message is a list like this [tick sender message]).
+  bus_passengers  ; List containing all the passengers that the agent (bus) is currently carrying (represented as a list like this [passenger_id bus_stop]).
+  previous_stop   ; ID of the last bus stop that the agent (bus) visited (-1 means that the agent has not visited any bus stop yet).
+  current_stop    ; ID of the bus stop where the agent (bus) currently is (-1 means that the agent is not at any bus stop).
+  next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
+
+  ; New local variables for students.
+  ; You can create any new local variable you want. Just declare them here.
+  bus_route
+  bus_route_id
+  bus_stop_counter
+  capacity
+  bus_routes
+  at_junction
+  role
+  desire
+  beliefs
+  intention_act
+  intention_loc ; maybe add other agents (for dropping, picking up)
+  flag
+  junctions
+]
+
+globals [graph]
+
+
+
+to-report intersect [a b]
+  report (filter [ member? ? b ] a)
+end
+
+to execute-actions
+  ; create multiple small buses based on ticks (delay) 
+  update-at-junction
+  update-desire
+  update-beliefs 
+  update-intententions 
+  if count buses = 1
+  [
+     add-bus 1
+     add-bus 1
+  ]  
+  go-to-next-stop 
+end
+
+to update-at-junction
+  set at_junction member? current_stop junctions
+end
+
+to update-desire
+  ; if all patches are clean, change desire from cleaning to turning off
+  ifelse amount_passengers_waiting > 0 ;and length beliefs <= 0 ; maybe add other buses passengers here through messages
+    [set desire "transport"]
+    [set desire "turn off"]
+
+end
+
+to update-beliefs 
+  set beliefs bus_passengers
+end
+
+__includes["update-intentions.nls" "go-to-next-stop.nls" "problems.nls" ]
