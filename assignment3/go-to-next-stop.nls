@@ -10,9 +10,12 @@ to go-to-next-stop
       [foreach bus_passengers
         [ 
           if item 1 ? = current_stop 
-            [drop-off-passenger first ? ]
-          if at_junction and not member? item 1 ? bus_route
-             [drop-off-passenger first ?]
+            [drop-off-passenger first ? 
+              
+               print (word "Current stop: " current_stop ". Passenger: " first ?)]
+          if at-junction? and not member? item 1 ? bus_route
+             [drop-off-passenger first ?
+               print (word "Current stop: " current_stop ". Passenger: " first ?)]
         ]
       ]
     
@@ -21,8 +24,10 @@ to go-to-next-stop
       [if length bus_passengers < capacity ; if bus not full
         [foreach get-passengers-at-stop current_stop ; for all waiting passengers
           [ if length bus_passengers < capacity 
-            [if member? item 1 ? bus_route and not at_junction
-              [pick-up-passenger first ? ]
+            [if member? item 1 ? bus_route and not at-junction?
+              [pick-up-passenger first ? 
+                print (word "Bus passengers: " bus_passengers)
+                ]
             ]
           ]
         ] 

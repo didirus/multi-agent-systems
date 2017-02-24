@@ -891,9 +891,9 @@ number_of_messages
 
 PLOT
 1099
-762
+545
 1413
-980
+763
 Average Travel Time
 Ticks
 Time
@@ -909,10 +909,10 @@ PENS
 "pen-1" 1.0 0 -7500403 true "" ""
 
 PLOT
-1099
-547
 1413
-765
+327
+1727
+545
 Total Amount of Money Spent
 Ticks
 Euros
@@ -960,11 +960,30 @@ MONITOR
 38
 1241
 83
-Desire
-ask bus 24 [print intention_act]
+int
+[intention_act] of bus 24
 17
 1
 11
+
+PLOT
+1414
+546
+1728
+764
+Waiting passengers
+Ticks
+Passengers
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot amount_passengers_waiting"
+"pen-1" 1.0 0 -7500403 true "" ""
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -1,4 +1,7 @@
+__includes["update-intentions.nls" "go-to-next-stop.nls" "problems.nls" "init-buses.nls"]
+
 extensions[table]
+
 buses-own [
   ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
   bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
@@ -18,52 +21,78 @@ buses-own [
   bus_stop_counter
   capacity
   bus_routes
-  at_junction
   role
   desire
-  beliefs
+  belief_busyness
   intention_act
   intention_loc ; maybe add other agents (for dropping, picking up)
-  flag
   junctions
+  busy_protocol_states
+  busy_protocol_state
 ]
 
 globals [graph]
-
-
 
 to-report intersect [a b]
   report (filter [ member? ? b ] a)
 end
 
 to execute-actions
-  ; create multiple small buses based on ticks (delay) 
-  update-at-junction
   update-desire
-  update-beliefs 
+  update-beliefs
   update-intententions 
-  if count buses = 1
-  [
-     add-bus 1
-     add-bus 1
-  ]  
-  go-to-next-stop 
-end
-
-to update-at-junction
-  set at_junction member? current_stop junctions
+  ;if count buses = 1
+  ;[
+  ;   add-bus 1
+  ;   add-bus 1
+ ;    add-bus 1
+  ;   add-bus 1
+  ;   add-bus 1
+  ;]  
+  go-to-next-stop
+  handle-protocols
 end
 
 to update-desire
-  ; if all patches are clean, change desire from cleaning to turning off
-  ifelse amount_passengers_waiting > 0 ;and length beliefs <= 0 ; maybe add other buses passengers here through messages
+  ifelse amount_passengers_waiting > 0 ; maybe add other buses passengers here through messages
     [set desire "transport"]
     [set desire "turn off"]
-
 end
 
-to update-beliefs 
-  set beliefs bus_passengers
+to update-beliefs
+  set belief_busyness judge-busyness?
 end
 
-__includes["update-intentions.nls" "go-to-next-stop.nls" "problems.nls" ]
+to handle-protocols
+  handle-busy
+end
+
+to handle-busy
+  if busy_protocol_state = "uninitiated"[
+    if overloaded?[
+      ; broadcast problem
+      set busy_protocol_state "waiting_for_answers"
+      ]
+    ]
+end
+
+to-report judge-busyness?
+  ; loop over all stations in route
+  ; sum amount of waiting passengers
+  ; report sum
+  report 1
+end
+
+to-report overloaded?
+  report capacity = length bus_passengers
+end
+
+to-report at-junction?
+  report member? current_stop junctions
+end
+
+;to broadcast [message]
+;  foreach buses[
+;    [x] -> show (word x " -> " round i)
+;  ]
+;end
