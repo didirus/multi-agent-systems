@@ -38,19 +38,36 @@ to-report intersect [a b]
 end
 
 to execute-actions
+  
+  ask buses [ print inbox ]
+  
   update-desire
   update-beliefs
   update-intententions 
-  ;if count buses = 1
-  ;[
-  ;   add-bus 1
-  ;   add-bus 1
- ;    add-bus 1
-  ;   add-bus 1
-  ;   add-bus 1
-  ;]  
+  if count buses = 1
+  [
+     add-bus 1
+     add-bus 1
+     add-bus 1
+     add-bus 1
+     add-bus 1
+  ]  
   go-to-next-stop
   handle-protocols
+end
+
+to-report get-bus-ids?
+  let ids []
+  
+  ; for all buses, get bus ids
+  ask buses
+  [ set ids lput bus_id ids ]
+  
+  ; remove own index from ids
+  set ids remove bus_id ids
+  
+  ; return id list
+  report ids
 end
 
 to update-desire
@@ -72,8 +89,9 @@ to handle-busy
     if overloaded?[
       ; broadcast problem
       set busy_protocol_state "waiting_for_answers"
-      ]
-    ]
+      broadcast "lol 1337 gg easy"
+     ]
+   ]
 end
 
 to-report judge-busyness?
@@ -84,15 +102,37 @@ to-report judge-busyness?
 end
 
 to-report overloaded?
-  report capacity = length bus_passengers
+  report true 
+  ;report capacity = length bus_passengers
 end
 
 to-report at-junction?
   report member? current_stop junctions
 end
 
-;to broadcast [message]
-;  foreach buses[
-;    [x] -> show (word x " -> " round i)
-;  ]
-;end
+to broadcast [message]
+  let other_bus_ids get-bus-ids?
+  foreach other_bus_ids 
+  [
+    send-message ? message
+  ]
+end
+
+to-report read-inbox [tick_number]
+  let messages []
+  
+  ; get all inbox messages
+  foreach inbox 
+  [
+    set messages lput ? messages
+  ]  
+  
+  ; return messages of current tick
+  report messages
+end
+
+to empty-inbox
+  set inbox []
+end
+
+
