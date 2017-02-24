@@ -1,33 +1,35 @@
-__includes["update-intentions.nls" "go-to-next-stop.nls" "problems.nls" "init-buses.nls"]
+__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls"]
 
 extensions[table]
 
 buses-own [
-  ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
+  ; ________________
+  ; STATIC READ-ONLY
   bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
   bus_type        ; The type of a given agent (bus). 1 means "small", 2 means "medium" and 3 means "large".
-    
-  ; Dynamic, read-only variables. These values may change over time. You can read them, but you cannot change them.
+  
+  ; _________________
+  ; DYNAMIC READ-ONLY
   inbox           ; List containing all the incoming messages (a given message is a list like this [tick sender message]).
   bus_passengers  ; List containing all the passengers that the agent (bus) is currently carrying (represented as a list like this [passenger_id bus_stop]).
   previous_stop   ; ID of the last bus stop that the agent (bus) visited (-1 means that the agent has not visited any bus stop yet).
   current_stop    ; ID of the bus stop where the agent (bus) currently is (-1 means that the agent is not at any bus stop).
   next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
-
-  ; New local variables for students.
-  ; You can create any new local variable you want. Just declare them here.
-  bus_route
-  bus_route_id
-  bus_stop_counter
-  capacity
-  bus_routes
-  role
-  desire
-  belief_busyness
-  intention_act
-  intention_loc ; maybe add other agents (for dropping, picking up)
+  
+  ; _________
+  ; CONSTANTS
+  tracks
   junctions
   busy_protocol_states
+  
+  ; _________
+  ; VARIABLES
+  desire
+  intention
+
+  track
+  track_index
+
   busy_protocol_state
 ]
 
@@ -38,22 +40,15 @@ to-report intersect [a b]
 end
 
 to execute-actions
-  
-  ask buses [ print inbox ]
-  
-  update-desire
-  update-beliefs
-  update-intententions 
-  if count buses = 1
-  [
-     add-bus 1
-     add-bus 1
-     add-bus 1
-     add-bus 1
-     add-bus 1
-  ]  
-  go-to-next-stop
+  set desire determine-desire?
+  update-intentions 
+  perform-actions
   handle-protocols
+  
+  if count buses = 1 [
+    add-bus 1
+    add-bus 1
+  ]  
 end
 
 to-report get-bus-ids?
@@ -70,14 +65,8 @@ to-report get-bus-ids?
   report ids
 end
 
-to update-desire
-  ifelse amount_passengers_waiting > 0 ; maybe add other buses passengers here through messages
-    [set desire "transport"]
-    [set desire "turn off"]
-end
-
-to update-beliefs
-  set belief_busyness judge-busyness?
+to-report determine-desire?
+  report "routine"
 end
 
 to handle-protocols
@@ -90,42 +79,44 @@ to handle-busy
       ; broadcast problem
       set busy_protocol_state "waiting_for_answers"
       broadcast "lol 1337 gg easy"
-     ]
-   ]
-end
-
-to-report judge-busyness?
-  ; loop over all stations in route
-  ; sum amount of waiting passengers
-  ; report sum
-  report 1
+    ]
+  ]
 end
 
 to-report overloaded?
-  report true 
-  ;report capacity = length bus_passengers
+  report capacity? = length bus_passengers
+end
+
+to-report capacity?
+  if bus_type = 1 [report bus_type1_capacity]
+  if bus_type = 2 [report bus_type2_capacity]
+  if bus_type = 3 [report bus_type3_capacity]
 end
 
 to-report at-junction?
   report member? current_stop junctions
 end
 
+to-report at-stop?
+  report current_stop != -1
+end
+
+to-report on-my-track [destination]
+  report member? destination item track tracks
+end
+
 to broadcast [message]
   let other_bus_ids get-bus-ids?
-  foreach other_bus_ids 
-  [
-    send-message ? message
-  ]
+  foreach other_bus_ids [
+    send-message ? message]
 end
 
 to-report read-inbox [tick_number]
   let messages []
   
   ; get all inbox messages
-  foreach inbox 
-  [
-    set messages lput ? messages
-  ]  
+  foreach inbox [
+    set messages lput ? messages]  
   
   ; return messages of current tick
   report messages

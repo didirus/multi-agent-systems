@@ -1,41 +1,35 @@
-to update-intententions
-  
-  ifelse desire = "transport"
-  
-    ; if desire transport
-    [ 
-      ; if i'm at a busstop:
-      ifelse next_stop = -1 
+to update-intentions
+  run (word "follow-" desire)
+end
 
-      [
-        ;if position == one of the locations of its passengers, int_act: drop off
-        foreach bus_passengers      
-        [  ifelse item 1 ? = current_stop[
-             set intention_act "drop-off"
-             stop
-             ][
-             if at-junction? and not member? item 1 ? bus_route[
-               set intention_act "drop-off"
-               stop
-               ]]
-             ]
-        foreach get-passengers-at-stop current_stop ;for all waiting passengers
-        [if member? item 1 ? bus_route ;if destination is on my route;
-          [set intention_act "pick-up"] ;intention = pick up
-         ;[foreach table:keys bus_routes ;for all other busroutes
-         ;  [if ? != bus_route_id 
-         ;    [if member? current_stop ? ;if my route crosses here with another route
-        ]
-      ]
-      [
-        set intention_act "go"
-        set intention_loc next_stop       
-      ]
-    ]
-    ; if the bus has the desire to turn off, clear all intentions
-    [
-      set intention_act "stop"
-      set intention_loc 0 
-    ]
-  
+
+to follow-routine
+  if not at-stop? [set intention "drive" stop]
+  if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
+  if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
+  set intention "drive"
+end
+
+to-report wants-to-leave [passenger]
+  report (destination-of passenger = current_stop) or (at-junction? and not on-my-track destination-of passenger)
+end
+
+to-report wants-to-enter [passenger]
+  report not at-junction? or on-my-track destination-of passenger
+end
+
+to-report destination-of [passenger]
+  report item 1 passenger
+end
+
+to-report id-of [passenger]
+  report item 0 passenger
+end
+
+to-report any [collection predicate]
+  report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
+end
+
+to follow-idle
+  set intention "stop"
 end

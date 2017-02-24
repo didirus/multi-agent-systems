@@ -1,49 +1,26 @@
 to init-buses
-  ; Initialize your agents here.
-  ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
+  ; _________
+  ; CONSTANTS
+  
   set graph [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
   
-  let bus_routeA [ "startA" 16 11 1 19 23 13 7 17 10 5 4 3] 
-  let bus_routeB [ "startB" 20 21 22 0 14 0 15 18 15 12 20 3]
-  let bus_routeC [ "startC" 9 8 6 8 2 8 9 3]
-  let business_threshold 10
+  set tracks [
+    [ 16 11 1 19 23 13 7 17 10 5 4 3]
+    [ 20 21 22 0 14 0 15 18 15 12 20 3]
+    [ 9 8 6 8 2 8 9 3]
+  ]
   
-  set bus_routes table:make
-  table:put bus_routes "A" bus_routeA
-  table:put bus_routes "B" bus_routeB
-  table:put bus_routes "C" bus_routeC
+  set junctions reduce intersect tracks
   
+  ; ____________________
+  ; PROTOCOL DEFINITIONS
   set busy_protocol_states ["uninitiated" "waiting_for_answers"]
   set busy_protocol_state "uninitiated"
   
-  let junction_list []
-  foreach table:keys bus_routes
-  [set junction_list lput table:get bus_routes ? junction_list]
-  set junctions reduce intersect junction_list
-
-  ifelse count buses mod 3 = 0
-  [
-    set bus_route table:get bus_routes "C"
-    set bus_route_id "C"
-  ]  
-  [
-    ifelse count buses mod 2 = 0
-    [ 
-      set bus_route table:get bus_routes "B" 
-      set bus_route_id "B"
-    ]
-    [ 
-      set bus_route table:get bus_routes "A" 
-      set bus_route_id "A"
-    ]
-  ]
-  
-  set bus_stop_counter 1 ; keeps track of the position on the route
-  set next_stop item 1 bus_route ; initialise the first destionation of bus
-  
-  ; define maximum capacity of bus
-  if bus_type = 1 [set capacity bus_type1_capacity]
-  if bus_type = 2 [set capacity bus_type2_capacity]
-  if bus_type = 3 [set capacity bus_type3_capacity]
-  
+  ; _________
+  ; VARIABLES
+  set track bus_id mod length tracks
+  set track_index 0
+  set next_stop item track_index item track tracks ; first destination of bus
+  set desire "routine"
 end
