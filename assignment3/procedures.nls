@@ -1,4 +1,6 @@
-to-report all-buses?
+; This file contains all kinds of auxiliary procedures.
+
+to-report all-buses? ; Returns list with the IDs of all buses, except my own.
   let ids []
   
   ; for all buses, get bus ids
@@ -11,40 +13,40 @@ to-report all-buses?
   report ids
 end
 
-to-report newest-bus?
-  report max all-buses?
+to-report newest-bus? ; Returns the ID of the newest bus.
+  report max fput bus_id all-buses?
 end
  
-to-report waiting-passengers?
+to-report waiting-passengers? ; Returns whether there are waiting passengers.
   report any? bus_stops with [length passengers_waiting > 0]
 end
 
-to-report overloaded?
+to-report overloaded? ; Returns whether this bus is full.
   report capacity? = length bus_passengers
 end
 
-to-report capacity?
+to-report capacity? ; Returns my capacity according to my bus type.
   if bus_type = 1 [report bus_type1_capacity]
   if bus_type = 2 [report bus_type2_capacity]
   if bus_type = 3 [report bus_type3_capacity]
 end
 
-to-report at-junction?
+to-report at-junction? ; Returns whether I'm currently at a junction.
   report member? current_stop junctions
 end
 
-to-report at-stop?
+to-report at-stop? ; Returns whether I'm at a stop. 
   report current_stop != -1
 end
 
-to-report on-my-track [destination]
+to-report on-my-track [destination] ; Returns whether `destination` is stop on my track.
   report member? destination item track tracks
 end
 
-to-report intersect [a b]
+to-report intersect [a b] ; Returns intersection of lists `a` and `b`.
   report (filter [ member? ? b ] a)
 end
 
-to-report any [collection predicate]
+to-report any [collection predicate] ; Returns whether `predicate` is true for each element of `collection`.
   report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
 end

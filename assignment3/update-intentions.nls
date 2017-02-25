@@ -1,36 +1,46 @@
-to update-intentions
-  run (word "pursue-" desire)
-end
+; In this file, once it has been determined which desire to pursue,
+; the most important intention at the moment is determined. All
+; functionality is grouped per desire.
 
-; __________________
-; INTENTION: ROUTINE
+to update-intentions run (word "pursue-" desire) end
+
+; _______________
+; DESIRE: ROUTINE
 
 to pursue-routine
+  ; If between stops, simply intent to continue to drive.
   if not at-stop? [set intention "drive" stop]
+  
+  ; If at stop, and any passenger wants to leave, intent to drop them off.
   if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
+
+  ; If at stop, and no passenger wants to leave, but any passenger wants to enter, intent to pick them up.
   if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
+  
+  ; If at stop, but no one wants to either enter or leave, intent to continue to drive.
   set intention "drive"
 end
 
 to-report wants-to-leave [passenger]
+  ; Determines if `passenger` wants to leave at the current stop. This
+  ; is the case if it is his destination, or if he needs to transfer here.
+  
   report (destination-of passenger = current_stop) or (at-junction? and not on-my-track destination-of passenger)
 end
 
 to-report wants-to-enter [passenger]
+  ; Determines if `passenger` wants to enter. This is the case
+  ; if his destination is on the track I'm driving.
+  
   report not at-junction? or on-my-track destination-of passenger
 end
 
-to-report destination-of [passenger]
-  report item 1 passenger
-end
+to-report destination-of [passenger] report item 1 passenger end
+to-report id-of [passenger] report item 0 passenger end
 
-to-report id-of [passenger]
-  report item 0 passenger
-end
+; ____________
+; DESIRE: IDLE
 
-; __________________
-; INTENTION: IDLE
-
-to pursue-idle
+to pursue-idle ; If the desire is `idle`, intent to stop.
   set intention "stop"
 end

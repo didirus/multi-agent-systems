@@ -32,22 +32,26 @@ to init-buses
   set overloaded.come_to_my_track "come to my track"
   
   set overloaded/state overloaded:UNINITIATED
-  set overloaded/timeout 300
+  set overloaded/timeout 50
   set overloaded/timer 0
   
   ; _________
   ; VARIABLES
   set track_index 0
+  set buses_bought 0
   
-  ifelse count buses < 4 [
+  ifelse (bus_id - 24) < length tracks [
+    ; I'm one of the first few buses. Go to a track that has no
+    ; bus yet, and set desire to 'routine' to start driving.
+    
     set track bus_id mod length tracks
-    set next_stop item track_index item track tracks ; first destination of bus
+    set next_stop item track_index item track tracks
     set desire "routine"]
-  [
+  [ 
+    ; I'm a newly bought bus. Don't know where to go yet.
     set track -1
     set desire "wait"
-    set overloaded/state overloaded:WAKING_UP
-  ]
+    set overloaded/state overloaded:WAKING_UP]
   
   if debug_messages or debug_purchases [
     ifelse track = -1 

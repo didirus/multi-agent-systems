@@ -17,53 +17,70 @@ buses-own [
   next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
   
   ; CONFIGS
-  debug_traffic
-  debug_messages
-  debug_purchases
+  debug_traffic   ; Set to true to make buses talk about picking up and dropping off passengers.
+  debug_messages  ; Set to true to make buses talk about everything message / protocol.
+  debug_purchases ; Set to true to make buses say something right after they've been bought.
   
   ; CONSTANTS
-  tracks
-  junctions
+  tracks          ; List of all tracks and their stops.
+  junctions       ; List of junction between tracks.
   
   ; VARIABLES
-  desire
-  intention
-
-  track
-  track_index
+  desire          ; The current desire of this bus.
+  intention       ; The current intention of this bus that has the highest priority.
+  buses_bought    ; For the first bus, to count how many buses he has already bought.
   
-  overloaded:UNINITIATED
-  overloaded:ABOUT_TO_BUY
-  overloaded:INSTRUCTING
-  overloaded:COLLIDED
-  overloaded:WAKING_UP
+  track           ; The index of the track this bus is currently driving.
+  track_index     ; Pointer to keep track of where on the track this bus is currently at.
   
-  overloaded.want_to_buy
-  overloaded.do_not_buy
-  overloaded.we_collided
-  overloaded.come_to_my_track
-
-  overloaded/state
-  overloaded/timeout
-  overloaded/timer
-  overloaded/dice
-  overloaded/newest_bus
+  ; Beneath are protocol states and messages and
+  ; protocol-specific variables the bus is keeping
+  ; track of. Names with : are protocol states,
+  ; names with . are protocol messages, and names
+  ; with / are protocol-specific variables.
+  
+  overloaded:UNINITIATED         ; Protocol not started.
+  overloaded:ABOUT_TO_BUY        ; Start of protocol; just got overloaded.
+  overloaded:INSTRUCTING         ; Bought a new bus; need to instruct him where to go.
+  overloaded:COLLIDED            ; Other bus on my track also just overloaded.
+  overloaded:WAKING_UP           ; I have just been bought; need to receive instructions.
+  
+  overloaded.want_to_buy         ; Broadcast messages telling fellow track members I just overloaded.
+  overloaded.do_not_buy          ; Private message telling fellow track member I still have capacity.
+  overloaded.we_collided         ; Private message telling fellow track member I also want to buy.
+  overloaded.come_to_my_track    ; Private message telling newly bought bus which track to go.
+  
+  overloaded/state               ; Keeps track of the protocol state.
+  overloaded/timeout             ; A constant; determines how long to wait after buying bus.
+  overloaded/timer               ; To make sure I don't buy a new bus right after I did.
+  overloaded/dice                ; During a collision, to keep track of my random number.
+  overloaded/newest_bus          ; The id of the newest bus right before I bought one.
 ]
 
 to execute-actions
+  ; The main executing loop for the bus. At each tick, first
+  ; determines which desire to pursue. Then, determines which
+  ; intentions go with that right now. Given the intentions,
+  ; the bus knows which actions to perform. After doing stuff,
+  ; check inbox for new messages (and reply to them). Lastly,
+  ; go over all protocols to see if the bus needs to act on them.
+  
   set desire determine-desire?
-  update-intentions 
+  update-intentions
   perform-actions
   check-inbox
   lead-protocols
-
-  if count buses = 1 [
-    add-bus 1
-    add-bus 1
-  ]  
+  
+  if (bus_id = 24) and (buses_bought < (length tracks - 1)) [
+    ; I'm the first bus, and there are still tracks without bus! Buy new one.
+      add-bus 1
+      set buses_bought buses_bought + 1 ]
 end
 
 to-report determine-desire?
+  ; If there are passengers, and I already know my track, drive
+  ; around track (intention 'routine'). Else, do nothing (intention 'idle').
+  
   ifelse waiting-passengers? and not (overloaded/state = overloaded:WAKING_UP)
     [report "routine"]
     [report "idle"]

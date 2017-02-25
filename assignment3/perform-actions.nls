@@ -1,3 +1,7 @@
+; This file handles all actions, after desire and intention
+; has been determined. Contains no further comments as the
+; code is self-explanatory.
+
 to perform-actions
   if at-stop? [
     if intention = "drop_off" [drop-off-passengers]
@@ -11,12 +15,7 @@ to drop-off-passengers
   foreach bus_passengers [ let passenger ?
     if wants-to-leave passenger [
       drop-off passenger
-      if debug_traffic [mention "Dropped off" passenger]]
-  ]
-end
-
-to drop-off [passenger]
-  drop-off-passenger id-of passenger
+      if debug_traffic [mention "Dropped off" passenger]]]
 end
 
 to pick-up-passengers
@@ -27,9 +26,8 @@ to pick-up-passengers
   ]
 end
 
-to pick-up [passenger]
-  pick-up-passenger id-of passenger
-end
+to pick-up [passenger] pick-up-passenger id-of passenger end
+to drop-off [passenger] drop-off-passenger id-of passenger end
 
 to-report next-stop?
   let stops_on_track item track tracks
