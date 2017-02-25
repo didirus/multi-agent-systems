@@ -1,14 +1,14 @@
-__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls"]
+__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls"]
 
 extensions[table]
 
+globals [graph]
+
 buses-own [
-  ; ________________
   ; STATIC READ-ONLY
   bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
   bus_type        ; The type of a given agent (bus). 1 means "small", 2 means "medium" and 3 means "large".
   
-  ; _________________
   ; DYNAMIC READ-ONLY
   inbox           ; List containing all the incoming messages (a given message is a list like this [tick sender message]).
   bus_passengers  ; List containing all the passengers that the agent (bus) is currently carrying (represented as a list like this [passenger_id bus_stop]).
@@ -16,13 +16,14 @@ buses-own [
   current_stop    ; ID of the bus stop where the agent (bus) currently is (-1 means that the agent is not at any bus stop).
   next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
   
-  ; _________
+  ; CONFIGS
+  debug_traffic
+  debug_messages
+  
   ; CONSTANTS
   tracks
   junctions
-  busy_protocol_states
   
-  ; _________
   ; VARIABLES
   desire
   intention
@@ -30,100 +31,27 @@ buses-own [
   track
   track_index
 
-  busy_protocol_state
+  protocol_overloaded_state
+  protocol_overloaded_bought_bus
+  protocol_overloaded_timeout
+  protocol_overloaded_timer
 ]
-
-globals [graph]
-
-to-report intersect [a b]
-  report (filter [ member? ? b ] a)
-end
 
 to execute-actions
   set desire determine-desire?
   update-intentions 
   perform-actions
-  handle-protocols
-  
+  check-inbox
+  lead-protocols
+
   if count buses = 1 [
     add-bus 1
     add-bus 1
   ]  
 end
 
-to-report get-bus-ids?
-  let ids []
-  
-  ; for all buses, get bus ids
-  ask buses
-  [ set ids lput bus_id ids ]
-  
-  ; remove own index from ids
-  set ids remove bus_id ids
-  
-  ; return id list
-  report ids
-end
-
 to-report determine-desire?
-  report "routine"
+  ifelse waiting-passengers?
+    [report "routine"]
+    [report "idle"]
 end
-
-to handle-protocols
-  handle-busy
-end
-
-to handle-busy
-  if busy_protocol_state = "uninitiated"[
-    if overloaded?[
-      ; broadcast problem
-      set busy_protocol_state "waiting_for_answers"
-      broadcast "lol 1337 gg easy"
-    ]
-  ]
-end
-
-to-report overloaded?
-  report capacity? = length bus_passengers
-end
-
-to-report capacity?
-  if bus_type = 1 [report bus_type1_capacity]
-  if bus_type = 2 [report bus_type2_capacity]
-  if bus_type = 3 [report bus_type3_capacity]
-end
-
-to-report at-junction?
-  report member? current_stop junctions
-end
-
-to-report at-stop?
-  report current_stop != -1
-end
-
-to-report on-my-track [destination]
-  report member? destination item track tracks
-end
-
-to broadcast [message]
-  let other_bus_ids get-bus-ids?
-  foreach other_bus_ids [
-    send-message ? message]
-end
-
-to-report read-inbox [tick_number]
-  let messages []
-  
-  ; get all inbox messages
-  foreach inbox [
-    set messages lput ? messages]  
-  
-  ; return messages of current tick
-  report messages
-end
-
-to empty-inbox
-  set inbox []
-end
-
-

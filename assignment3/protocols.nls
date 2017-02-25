@@ -1,0 +1,35 @@
+to lead-protocols
+  lead-overloaded
+end
+
+to lead-overloaded
+  if protocol_overloaded_timeout > 0 [
+    set protocol_overloaded_timeout protocol_overloaded_timeout - 1]
+  
+  if protocol_overloaded_state = "uninitiated" [
+    if overloaded? and not (protocol_overloaded_timeout > 0) [
+      broadcast "overloaded" "want to buy" track
+      set protocol_overloaded_state "about_to_buy"]
+    stop]
+  
+  if protocol_overloaded_state = "about_to_buy" [
+    add-bus 1   
+  
+  ]
+end
+
+to follow-overloaded [key content]
+  print "SUCCESS!"
+end
+
+;to follow-overloaded [key content]
+;  foreach check-inbox? ticks ; for each message in inbox
+;  [if table:get item 2 ? "key" = 0 ; if key = 0
+;    
+;    [if table:get item 2 ? "content" = bus_route_id ; if my route is same as sender's route
+;      [if not overloaded?
+;        [let message create-message "overload" "void" 1
+;          let receiver item 1 ? 
+;          send-message receiver message
+;          print "Co-route driver responds that he is not full"]]]]
+;end

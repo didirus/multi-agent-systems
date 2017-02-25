@@ -11,7 +11,7 @@ to drop-off-passengers
   foreach bus_passengers [ let passenger ?
     if wants-to-leave passenger [
       drop-off passenger
-      mention "Dropped off" passenger]
+      if debug_traffic [mention "Dropped off" passenger]]
   ]
 end
 
@@ -23,7 +23,7 @@ to pick-up-passengers
   foreach get-passengers-at-stop current_stop [ let passenger ?
     if wants-to-enter passenger and not overloaded? [
       pick-up passenger
-      mention "Picked up" passenger]
+      if debug_traffic [mention "Picked up" passenger]]
   ]
 end
 

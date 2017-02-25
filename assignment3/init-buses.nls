@@ -12,10 +12,17 @@ to init-buses
   
   set junctions reduce intersect tracks
   
-  ; ____________________
-  ; PROTOCOL DEFINITIONS
-  set busy_protocol_states ["uninitiated" "waiting_for_answers"]
-  set busy_protocol_state "uninitiated"
+  ; _______
+  ; CONFIGS
+  set debug_traffic false
+  set debug_messages true
+  
+  ; _________
+  ; PROTOCOLS
+  set protocol_overloaded_state "uninitiated"
+  set protocol_overloaded_bought_bus 0
+  set protocol_overloaded_timeout 30
+  set protocol_overloaded_timer 0
   
   ; _________
   ; VARIABLES

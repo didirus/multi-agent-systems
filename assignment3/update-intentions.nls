@@ -1,9 +1,11 @@
 to update-intentions
-  run (word "follow-" desire)
+  run (word "pursue-" desire)
 end
 
+; __________________
+; INTENTION: ROUTINE
 
-to follow-routine
+to pursue-routine
   if not at-stop? [set intention "drive" stop]
   if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
   if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
@@ -26,10 +28,9 @@ to-report id-of [passenger]
   report item 0 passenger
 end
 
-to-report any [collection predicate]
-  report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
-end
+; __________________
+; INTENTION: IDLE
 
-to follow-idle
+to pursue-idle
   set intention "stop"
 end
