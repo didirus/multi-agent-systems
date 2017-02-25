@@ -1,38 +1,38 @@
 to check-inbox
   foreach inbox [ let message ?
-    (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2") "]") key-of message content-of message)]
+    (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2 ?3") "]") sender-of message body-of message details-of message)]
   set inbox []
 end
 
-to send [recipient protocol key content]
-  send-message recipient draft-message protocol key content
-  if debug_messages [print (word "[" ticks "] Bus" bus_id " sent: " to-string-outgoing recipient protocol key content)]
+to send [recipient protocol body details]
+  send-message recipient draft-message protocol body details
+  if debug_messages [show (word "I sent: " to-string-outgoing recipient protocol body details)]
 end
 
-to broadcast [protocol key content]
+to broadcast [protocol body details]
   foreach all-buses? [ let recipient ?
-    send-message recipient draft-message protocol key content]
-  if debug_messages [print (word "[" ticks "] Bus" bus_id " sent: " to-string-outgoing "broad" protocol key content)]
+    send-message recipient draft-message protocol body details]
+  if debug_messages [show (word "I sent: " to-string-outgoing "broad" protocol body details)]
 end
 
-to-report draft-message [protocol key content]
+to-report draft-message [protocol body details]
   let message table:make
   table:put message "protocol" protocol
-  table:put message "key" key
-  table:put message "content" content
+  table:put message "body" body
+  table:put message "details" details
   report message
 end
 
 to-report tick-of [message] report item 0 message end
 to-report sender-of [message] report item 1 message end
 to-report protocol-of [message] report table:get item 2 message "protocol" end
-to-report key-of [message] report table:get item 2 message "key" end
-to-report content-of [message] report table:get item 2 message "content" end
+to-report body-of [message] report table:get item 2 message "body" end
+to-report details-of [message] report table:get item 2 message "details" end
 
 to-report to-string-incoming [message]
-  report (word "(to:" bus_id ",from:" sender-of message ",prot:" protocol-of message ",key:" key-of message")")
+  report (word "[to: " bus_id ", from: " sender-of message ", protocol: " protocol-of message ", body: " body-of message ", details: " details-of message "]")
 end
 
-to-report to-string-outgoing [recipient protocol key content]
-  report (word "(to:" recipient ",prot:" protocol ",key:" key ", cont:" content ")")
+to-report to-string-outgoing [recipient protocol body details]
+  report (word "[to: " recipient ", protocol: " protocol ", body: " body ", details:" details "]")
 end

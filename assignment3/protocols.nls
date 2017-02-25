@@ -3,33 +3,73 @@ to lead-protocols
 end
 
 to lead-overloaded
-  if protocol_overloaded_timeout > 0 [
-    set protocol_overloaded_timeout protocol_overloaded_timeout - 1]
+  if overloaded/timer > 0 [
+    set overloaded/timer overloaded/timer - 1]
   
-  if protocol_overloaded_state = "uninitiated" [
-    if overloaded? and not (protocol_overloaded_timeout > 0) [
-      broadcast "overloaded" "want to buy" track
-      set protocol_overloaded_state "about_to_buy"]
+  if overloaded/state = overloaded:UNINITIATED [
+    if overloaded? and not (overloaded/timer > 0) [
+      broadcast "overloaded" overloaded.want_to_buy track
+      set overloaded/state overloaded:ABOUT_TO_BUY]
     stop]
   
-  if protocol_overloaded_state = "about_to_buy" [
-    add-bus 1   
+  if overloaded/state = overloaded:ABOUT_TO_BUY [
+     if debug_messages [ show (word "No one on track " track " answered my call.")]
+     buy
+     stop]
   
-  ]
+  if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
+    send newest-bus? "overloaded" overloaded.come_to_my_track track
+    end-overloaded
+    stop]
 end
 
-to follow-overloaded [key content]
-  print "SUCCESS!"
+to follow-overloaded [sender body details]
+  
+  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:UNINITIATED [
+    if not overloaded? [send sender "overloaded" overloaded.do_not_buy "void"]
+    stop]
+  
+  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:ABOUT_TO_BUY [
+    set overloaded/dice random 500
+    send sender "overloaded" overloaded.we_collided overloaded/dice
+    set overloaded/state overloaded:COLLIDED
+    stop]
+  
+  if body = overloaded.we_collided [
+    ifelse overloaded/dice >= details [
+      if debug_messages [ show (word "Won! I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      buy]
+    [
+      if debug_messages [ show (word "Lost :(. I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      end-overloaded]
+    stop]
+  
+  if body = overloaded.do_not_buy [
+    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for track " track ".")] 
+    end-overloaded
+    stop]
+  
+  if body = overloaded.come_to_my_track [
+    set track details
+    set next_stop item track_index item track tracks
+    set desire "routine"
+    if debug_messages [ show (word "I have been instructed to drive track " track ".")]
+    set overloaded/state overloaded:UNINITIATED
+    stop]
 end
 
-;to follow-overloaded [key content]
-;  foreach check-inbox? ticks ; for each message in inbox
-;  [if table:get item 2 ? "key" = 0 ; if key = 0
-;    
-;    [if table:get item 2 ? "content" = bus_route_id ; if my route is same as sender's route
-;      [if not overloaded?
-;        [let message create-message "overload" "void" 1
-;          let receiver item 1 ? 
-;          send-message receiver message
-;          print "Co-route driver responds that he is not full"]]]]
-;end
+to buy
+  ifelse overloaded? [
+    add-bus 1
+    set overloaded/newest_bus newest-bus?
+    set overloaded/state overloaded:INSTRUCTING
+    if debug_messages [ show (word "I bought a bus for track " track ".")]]
+  [
+    if debug_messages [ show (word "I was about to buy a bus for track " track ", but had capacity again.")]
+    end-overloaded]
+end
+
+to end-overloaded
+  set overloaded/timer overloaded/timeout
+  set overloaded/state overloaded:UNINITIATED
+end

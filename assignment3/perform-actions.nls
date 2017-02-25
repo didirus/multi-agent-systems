@@ -38,5 +38,5 @@ to-report next-stop?
 end
 
 to mention [message passenger]
-  print (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
+  show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
 end

@@ -19,6 +19,7 @@ buses-own [
   ; CONFIGS
   debug_traffic
   debug_messages
+  debug_purchases
   
   ; CONSTANTS
   tracks
@@ -30,11 +31,23 @@ buses-own [
 
   track
   track_index
+  
+  overloaded:UNINITIATED
+  overloaded:ABOUT_TO_BUY
+  overloaded:INSTRUCTING
+  overloaded:COLLIDED
+  overloaded:WAKING_UP
+  
+  overloaded.want_to_buy
+  overloaded.do_not_buy
+  overloaded.we_collided
+  overloaded.come_to_my_track
 
-  protocol_overloaded_state
-  protocol_overloaded_bought_bus
-  protocol_overloaded_timeout
-  protocol_overloaded_timer
+  overloaded/state
+  overloaded/timeout
+  overloaded/timer
+  overloaded/dice
+  overloaded/newest_bus
 ]
 
 to execute-actions
@@ -51,7 +64,7 @@ to execute-actions
 end
 
 to-report determine-desire?
-  ifelse waiting-passengers?
+  ifelse waiting-passengers? and not (overloaded/state = overloaded:WAKING_UP)
     [report "routine"]
     [report "idle"]
 end
