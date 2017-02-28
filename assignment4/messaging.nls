@@ -1,0 +1,47 @@
+to check-inbox
+  ; Checks protocol of inbox messages, invokes associated 'follow' procedures.
+  ; For instance, procedure `follow-overloaded` for the 'overloaded' protocol.
+  
+  foreach inbox [ let message ?
+    (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2 ?3") "]") sender-of message body-of message details-of message)]
+  set inbox []
+end
+
+to send [recipient protocol body details]
+  ; Sends message of `protocol` to `recipient` containing `body` and `details`.
+  
+  send-message recipient draft-message protocol body details
+  if debug_messages [show (word "I sent: " to-string-outgoing recipient protocol body details)]
+end
+
+to broadcast [protocol body details]
+  ; Sends message of `protocol` containing `body` and `details` to all other buses.
+  
+  foreach all-buses? [ let recipient ?
+    send-message recipient draft-message protocol body details]
+  if debug_messages [show (word "I sent: " to-string-outgoing "broad" protocol body details)]
+end
+
+to-report draft-message [protocol body details]
+  ; Helper function. Makes the message data structure.
+  
+  let message table:make
+  table:put message "protocol" protocol
+  table:put message "body" body
+  table:put message "details" details
+  report message
+end
+
+to-report tick-of [message] report item 0 message end
+to-report sender-of [message] report item 1 message end
+to-report protocol-of [message] report table:get item 2 message "protocol" end
+to-report body-of [message] report table:get item 2 message "body" end
+to-report details-of [message] report table:get item 2 message "details" end
+
+to-report to-string-incoming [message]
+  report (word "[to: " bus_id ", from: " sender-of message ", protocol: " protocol-of message ", body: " body-of message ", details: " details-of message "]")
+end
+
+to-report to-string-outgoing [recipient protocol body details]
+  report (word "[to: " recipient ", protocol: " protocol ", body: " body ", details:" details "]")
+end

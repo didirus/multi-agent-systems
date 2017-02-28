@@ -1,0 +1,40 @@
+; This file handles all actions, after desire and intention
+; has been determined. Contains no further comments as the
+; code is self-explanatory.
+
+to perform-actions
+  if at-stop? [
+    if intention = "drop_off" [drop-off-passengers]
+    if intention = "pick_up" [pick-up-passengers]]
+  if intention = "drive"[
+    if next_stop = -1 [set next_stop next-stop?]
+    travel-to next_stop]
+end
+
+to drop-off-passengers
+  foreach bus_passengers [ let passenger ?
+    if wants-to-leave passenger [
+      drop-off passenger
+      if debug_traffic [mention "Dropped off" passenger]]]
+end
+
+to pick-up-passengers
+  foreach get-passengers-at-stop current_stop [ let passenger ?
+    if wants-to-enter passenger and not overloaded? [
+      pick-up passenger
+      if debug_traffic [mention "Picked up" passenger]]
+  ]
+end
+
+to pick-up [passenger] pick-up-passenger id-of passenger end
+to drop-off [passenger] drop-off-passenger id-of passenger end
+
+to-report next-stop?
+  let stops_on_track item track tracks
+  set track_index (track_index + 1) mod (length stops_on_track)
+  report item track_index stops_on_track
+end
+
+to mention [message passenger]
+  show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
+end

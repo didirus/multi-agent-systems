@@ -1,0 +1,60 @@
+to init-buses
+  ; _________
+  ; CONSTANTS
+  
+  set graph [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
+  
+  set tracks [
+    [ 16 11 1 19 23 13 7 17 10 5 4 3]
+    [ 20 21 22 0 14 0 15 18 15 12 20 3]
+    [ 9 8 6 8 2 8 9 3]
+  ]
+  
+  set junctions reduce intersect tracks
+  
+  ; _______
+  ; CONFIGS
+  set debug_traffic false
+  set debug_messages true
+  set debug_purchases false
+  
+  ; _________
+  ; PROTOCOLS
+  set overloaded:UNINITIATED "uninitiated"
+  set overloaded:ABOUT_TO_BUY "about_to_buy"
+  set overloaded:INSTRUCTING "instructing"
+  set overloaded:COLLIDED "collided"
+  set overloaded:WAKING_UP "waking_up"
+  
+  set overloaded.want_to_buy "want to buy"
+  set overloaded.do_not_buy "do not buy"
+  set overloaded.we_collided "we collided"
+  set overloaded.come_to_my_track "come to my track"
+  
+  set overloaded/state overloaded:UNINITIATED
+  set overloaded/timeout 50
+  set overloaded/timer 0
+  
+  ; _________
+  ; VARIABLES
+  set track_index 0
+  set buses_bought 0
+  
+  ifelse (bus_id - 24) < length tracks [
+    ; I'm one of the first few buses. Go to a track that has no
+    ; bus yet, and set desire to 'routine' to start driving.
+    
+    set track bus_id mod length tracks
+    set next_stop item track_index item track tracks
+    set desire "routine"]
+  [ 
+    ; I'm a newly bought bus. Don't know where to go yet.
+    set track -1
+    set desire "wait"
+    set overloaded/state overloaded:WAKING_UP]
+  
+  if debug_messages or debug_purchases [
+    ifelse track = -1 
+      [show (word "I am created. No track yet.")]
+      [show (word "I am created. Track: " track)]]
+end

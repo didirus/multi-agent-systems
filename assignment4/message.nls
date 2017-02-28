@@ -1,0 +1,13 @@
+;message-objects-own [
+;
+;  performative
+;  message_sender
+;  message_receiver
+;  message_content
+;  protocol_key
+;
+;]
+;
+;;to-report create-message?
+;;  a
+;;end

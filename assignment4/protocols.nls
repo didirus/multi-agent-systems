@@ -1,0 +1,111 @@
+; This file contains all protocols. Given a protocol, a bus can 'lead'
+; or 'follow'. 'Follow' means it responds according to the protocol to
+; an incoming message. 'Lead' means it takes action according to the
+; protocol, not being prompted by an incoming message. Accordingly,
+; for each protocol, for instance 'overloaded', there is a lead
+; procedure `lead-overloaded` and a follow function `follow-overloaded`.
+
+
+to lead-protocols ; Loops through the lead procedures of all protocols.
+  lead-overloaded
+end
+
+to lead-overloaded
+  if overloaded/timer > 0 [
+    ; Decrease waiting time to buy new buses.
+    set overloaded/timer overloaded/timer - 1]
+  
+  if overloaded/state = overloaded:UNINITIATED [
+    if overloaded? and not (overloaded/timer > 0) [
+      
+      ; I'm overloaded and waited long enough, so initiate protocol!
+      
+      broadcast "overloaded" overloaded.want_to_buy track  ; Broadcast 'want to buy' to all other buses.
+      set overloaded/state overloaded:ABOUT_TO_BUY]        ; Change internal protocol state accordingly.
+    stop]
+  
+  if overloaded/state = overloaded:ABOUT_TO_BUY [
+    
+     ; Apparently, no-one on my track still has capacity. So buy!
+     
+     if debug_messages [ show (word "No one on track " track " answered my call.")]
+     buy
+     stop]
+  
+  if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
+    
+    ; I just ordered a new bus, and I now see it has been
+    ; delivered. So I need to instruct it to drive my track.
+    
+    send newest-bus? "overloaded" overloaded.come_to_my_track track
+    end-overloaded
+    stop]
+end
+
+to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
+  
+  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:UNINITIATED [
+    
+    ; A fellow track member wants to buy, but I still
+    ; have capacity. So I block his buy.
+    
+    if not overloaded? [send sender "overloaded" overloaded.do_not_buy "void"]
+    stop]
+  
+  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:ABOUT_TO_BUY [
+    
+    ; A fellow track member also wants to buy. Collision!
+    ; We both throw a dice; highest number wins and buys.
+    
+    set overloaded/dice random 500
+    send sender "overloaded" overloaded.we_collided overloaded/dice ; Store the number I got.
+    set overloaded/state overloaded:COLLIDED
+    stop]
+  
+  if body = overloaded.we_collided [
+    
+    ; I received the dice throw of the other bus. Let's see who won!
+    
+    ifelse overloaded/dice >= details [
+      if debug_messages [ show (word "Won! I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      buy]
+    [
+      if debug_messages [ show (word "Lost :(. I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      end-overloaded]
+    stop]
+  
+  if body = overloaded.do_not_buy [
+    
+    ; A fellow track member still has capacity, so I don't have to buy.
+    
+    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for track " track ".")] 
+    end-overloaded
+    stop]
+  
+  if body = overloaded.come_to_my_track [
+    
+    ; I have just been bought, and this message contains the track I should be driving.
+    
+    set track details
+    set next_stop item track_index item track tracks
+    set desire "routine"
+    if debug_messages [ show (word "I have been instructed to drive track " track ".")]
+    set overloaded/state overloaded:UNINITIATED
+    stop]
+end
+
+to buy
+  ifelse overloaded? [
+    add-bus 2
+    set overloaded/newest_bus newest-bus?
+    set overloaded/state overloaded:INSTRUCTING
+    if debug_messages [ show (word "I bought a bus for track " track ".")]]
+  [
+    if debug_messages [ show (word "I was about to buy a bus for track " track ", but had capacity again.")]
+    end-overloaded]
+end
+
+to end-overloaded
+  set overloaded/timer overloaded/timeout
+  set overloaded/state overloaded:UNINITIATED
+end
