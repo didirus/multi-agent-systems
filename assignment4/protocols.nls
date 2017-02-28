@@ -20,41 +20,41 @@ to lead-overloaded
       
       ; I'm overloaded and waited long enough, so initiate protocol!
       
-      broadcast "overloaded" overloaded.want_to_buy track  ; Broadcast 'want to buy' to all other buses.
+      broadcast "overloaded" overloaded.want_to_buy district  ; Broadcast 'want to buy' to all other buses.
       set overloaded/state overloaded:ABOUT_TO_BUY]        ; Change internal protocol state accordingly.
     stop]
   
   if overloaded/state = overloaded:ABOUT_TO_BUY [
     
-     ; Apparently, no-one on my track still has capacity. So buy!
+     ; Apparently, no-one in my district still has capacity. So buy!
      
-     if debug_messages [ show (word "No one on track " track " answered my call.")]
+     if debug_messages [ show (word "No one on district " district " answered my call.")]
      buy
      stop]
   
   if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
     
     ; I just ordered a new bus, and I now see it has been
-    ; delivered. So I need to instruct it to drive my track.
+    ; delivered. So I need to instruct it to drive in my district.
     
-    send newest-bus? "overloaded" overloaded.come_to_my_track track
+    send newest-bus? "overloaded" overloaded.come_to_my_district district
     end-overloaded
     stop]
 end
 
 to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
   
-  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:UNINITIATED [
+  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:UNINITIATED [
     
-    ; A fellow track member wants to buy, but I still
+    ; A fellow district member wants to buy, but I still
     ; have capacity. So I block his buy.
     
     if not overloaded? [send sender "overloaded" overloaded.do_not_buy "void"]
     stop]
   
-  if body = overloaded.want_to_buy and details = track and overloaded/state = overloaded:ABOUT_TO_BUY [
+  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:ABOUT_TO_BUY [
     
-    ; A fellow track member also wants to buy. Collision!
+    ; A fellow district member also wants to buy. Collision!
     ; We both throw a dice; highest number wins and buys.
     
     set overloaded/dice random 500
@@ -76,20 +76,21 @@ to follow-overloaded [sender body details] ; This function is called after incom
   
   if body = overloaded.do_not_buy [
     
-    ; A fellow track member still has capacity, so I don't have to buy.
+    ; A fellow district member still has capacity, so I don't have to buy.
     
-    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for track " track ".")] 
+    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for district " district ".")] 
     end-overloaded
     stop]
   
-  if body = overloaded.come_to_my_track [
+  if body = overloaded.come_to_my_district [
     
-    ; I have just been bought, and this message contains the track I should be driving.
+    ; I have just been bought, and this message contains the district I should be driving.
     
-    set track details
-    set next_stop item track_index item track tracks
+    set district details
+    set-track 3 item district districts
+    set next_stop item track_index track 
     set desire "routine"
-    if debug_messages [ show (word "I have been instructed to drive track " track ".")]
+    if debug_messages [ show (word "I have been instructed to drive in district " district ".")]
     set overloaded/state overloaded:UNINITIATED
     stop]
 end
@@ -99,9 +100,9 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    if debug_messages [ show (word "I bought a bus for track " track ".")]]
+    if debug_messages [ show (word "I bought a bus for district " district ".")]]
   [
-    if debug_messages [ show (word "I was about to buy a bus for track " track ", but had capacity again.")]
+    if debug_messages [ show (word "I was about to buy a bus for district " district ", but had capacity again.")]
     end-overloaded]
 end
 

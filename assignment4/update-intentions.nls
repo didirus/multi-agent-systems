@@ -11,11 +11,15 @@ to pursue-routine
   ; If between stops, simply intent to continue to drive.
   if not at-stop? [set intention "drive" stop]
   
-  ; If at stop, and any passenger wants to leave, intent to drop them off.
-  if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
-
-  ; If at stop, and no passenger wants to leave, but any passenger wants to enter, intent to pick them up.
-  if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
+  ; If in district set intentions for drop off and pick up
+  if in-district?[
+    
+    ; If at stop, and any passenger wants to leave, intent to drop them off.
+    if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
+    
+    ; If at stop, and no passenger wants to leave, but any passenger wants to enter, intent to pick them up.
+    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
+  ]
   
   ; If at stop, but no one wants to either enter or leave, intent to continue to drive.
   set intention "drive"
@@ -25,14 +29,14 @@ to-report wants-to-leave [passenger]
   ; Determines if `passenger` wants to leave at the current stop. This
   ; is the case if it is his destination, or if he needs to transfer here.
   
-  report (destination-of passenger = current_stop) or (at-junction? and not on-my-track destination-of passenger)
+  report (destination-of passenger = current_stop) or (at-junction? and not in-my-district destination-of passenger)
 end
 
 to-report wants-to-enter [passenger]
   ; Determines if `passenger` wants to enter. This is the case
-  ; if his destination is on the track I'm driving.
+  ; if his destination is in the district I'm driving.
   
-  report not at-junction? or on-my-track destination-of passenger
+  report not at-junction? or in-my-district destination-of passenger
 end
 
 to-report destination-of [passenger] report item 1 passenger end

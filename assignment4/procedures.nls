@@ -39,8 +39,8 @@ to-report at-stop? ; Returns whether I'm at a stop.
   report current_stop != -1
 end
 
-to-report on-my-track [destination] ; Returns whether `destination` is stop on my track.
-  report member? destination item track tracks
+to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
+  report member? destination item district districts
 end
 
 to-report intersect [a b] ; Returns intersection of lists `a` and `b`.
@@ -49,4 +49,8 @@ end
 
 to-report any [collection predicate] ; Returns whether `predicate` is true for each element of `collection`.
   report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
+end
+
+to-report in-district?
+  report member? current_stop item district districts
 end

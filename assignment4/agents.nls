@@ -22,7 +22,7 @@ buses-own [
   debug_purchases ; Set to true to make buses say something right after they've been bought.
   
   ; CONSTANTS
-  tracks          ; List of all tracks and their stops.
+  districts       ; List of all tracks and their stops.
   junctions       ; List of junction between tracks.
   dijkstra        ; Table of dijkstra algorithm results
   
@@ -31,7 +31,8 @@ buses-own [
   intention       ; The current intention of this bus that has the highest priority.
   buses_bought    ; For the first bus, to count how many buses he has already bought.
   
-  track           ; The index of the track this bus is currently driving.
+  district        ; The index of the track this bus is currently driving.
+  track           ; Temporary goal route
   track_index     ; Pointer to keep track of where on the track this bus is currently at.
   
   ; Beneath are protocol states and messages and
@@ -49,7 +50,7 @@ buses-own [
   overloaded.want_to_buy         ; Broadcast messages telling fellow track members I just overloaded.
   overloaded.do_not_buy          ; Private message telling fellow track member I still have capacity.
   overloaded.we_collided         ; Private message telling fellow track member I also want to buy.
-  overloaded.come_to_my_track    ; Private message telling newly bought bus which track to go.
+  overloaded.come_to_my_district ; Private message telling newly bought bus which track to go.
   
   overloaded/state               ; Keeps track of the protocol state.
   overloaded/timeout             ; A constant; determines how long to wait after buying bus.
@@ -71,8 +72,9 @@ to execute-actions
   perform-actions
   check-inbox
   lead-protocols
+  update-track
   
-  if (bus_id = 24) and (buses_bought < (length tracks - 1)) [
+  if (bus_id = 24) and (buses_bought < (length districts - 1)) [
     ; I'm the first bus, and there are still tracks without bus! Buy new one.
       add-bus 1
       set buses_bought buses_bought + 1 ]
@@ -86,3 +88,4 @@ to-report determine-desire?
     [report "routine"]
     [report "idle"]
 end
+

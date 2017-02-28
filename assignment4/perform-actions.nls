@@ -30,11 +30,40 @@ to pick-up [passenger] pick-up-passenger id-of passenger end
 to drop-off [passenger] drop-off-passenger id-of passenger end
 
 to-report next-stop?
-  let stops_on_track item track tracks
-  set track_index (track_index + 1) mod (length stops_on_track)
-  report item track_index stops_on_track
+  ;let stops_on_track route
+  set track_index (track_index + 1) mod (length track)
+  report item track_index track
 end
 
 to mention [message passenger]
   show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
+end
+
+to set-track [source target]
+  let shortest_stop 99 
+  let min_cost 10000000
+  foreach target [
+    let busstop ?
+    let output table:get dijkstra (list source busstop)
+    let cost item 1 output
+    if cost < min_cost [
+      set shortest_stop busstop
+      set min_cost cost]
+  ]
+  let route first table:get dijkstra (list source shortest_stop)
+  ifelse length route = 1 [
+    update-track
+  ]
+  [ set track route ] ; set the route to the nearest busstop in district
+end
+
+to update-track
+  ; If end of track, update
+    
+  if track = 0 or current_stop = last track [
+    
+    set track item district districts ; pick default route
+
+    set track_index position current_stop track
+  ]
 end
