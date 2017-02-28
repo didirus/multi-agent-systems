@@ -955,17 +955,6 @@ final_average_travelling_time
 1
 11
 
-MONITOR
-1184
-38
-1241
-83
-int
-[intention_act] of bus 24
-17
-1
-11
-
 PLOT
 1414
 546

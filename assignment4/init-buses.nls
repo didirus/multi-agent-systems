@@ -10,7 +10,8 @@ to init-buses
     [ 6 8 2 8 9 20 21 10 5 4 3 9 8 ]
   ]
   
-  set junctions reduce intersect districts
+  set-junctions 
+  print junctions
   set dijkstra read-dijkstra?
   
   ; _______

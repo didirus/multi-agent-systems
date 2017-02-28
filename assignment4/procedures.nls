@@ -32,7 +32,21 @@ to-report capacity? ; Returns my capacity according to my bus type.
 end
 
 to-report at-junction? ; Returns whether I'm currently at a junction.
-  report member? current_stop junctions
+  let boolean false
+  
+  ; for each district list/set
+  foreach districts [
+    let pos position ? districts
+    
+    ; for all other districts
+    if pos != district [
+      
+      ; if I'm at any junction, return true
+      if member? current_stop table:get junctions (list district pos) [
+        set boolean true ]]]
+  
+  ; return outcome
+  report boolean
 end
 
 to-report at-stop? ; Returns whether I'm at a stop. 
@@ -53,4 +67,25 @@ end
 
 to-report in-district?
   report member? current_stop item district districts
+end
+
+to set-junctions
+  
+  ; create hash table
+  let juncts table:make 
+  
+  ; for all district combinations
+  foreach districts [
+    let i ?
+    let index_i position i districts
+    foreach districts [
+      let j ?
+      let index_j position j districts
+      
+      ; store intersection of the to district lists 
+      if index_i != index_j [
+        table:put juncts (list index_i index_j) reduce intersect (list i j) ]]]
+  
+  ; store hash table in property
+  set junctions juncts
 end
