@@ -1,4 +1,4 @@
-__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls"]
+__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls"]
 
 extensions[table]
 
@@ -24,6 +24,7 @@ buses-own [
   ; CONSTANTS
   tracks          ; List of all tracks and their stops.
   junctions       ; List of junction between tracks.
+  dijkstra        ; Table of dijkstra algorithm results
   
   ; VARIABLES
   desire          ; The current desire of this bus.
