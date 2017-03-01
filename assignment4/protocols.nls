@@ -37,7 +37,7 @@ to lead-overloaded
     
      ; Apparently, no-one in my district still has capacity. So buy!
      
-     if debug_messages [ show (word "No one on district " district " answered my call." ticks)]
+     if debug_messages [ debug (word "No one on district " district " answered my call." ticks)]
      buy
      stop]
   
@@ -84,10 +84,10 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; I received the dice throw of the other bus. Let's see who won!
     
     ifelse overloaded/dice >= details [
-      if debug_messages [ show (word "Won! I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      if debug_messages [ debug (word "Won! I threw " overloaded/dice ", bus " sender " threw " details ".")]
       buy]
     [
-      if debug_messages [ show (word "Lost :(. I threw " overloaded/dice ", bus " sender " threw " details ".")]
+      if debug_messages [ debug (word "Lost :(. I threw " overloaded/dice ", bus " sender " threw " details ".")]
       end-overloaded]
     stop]
   
@@ -95,7 +95,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     
     ; A fellow district member still has capacity, so I don't have to buy.
     
-    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for district " district "." ticks)] 
+    if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district "." ticks)] 
     end-overloaded
     stop]
   
@@ -107,7 +107,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set-track 3 item district districts
     set next_stop item track_index track 
     set desire "routine"
-    if debug_messages [ show (word "I have been instructed to drive in district " district "." ticks)]
+    if debug_messages [ debug (word "I have been instructed to drive in district " district "." ticks)]
     set overloaded/state overloaded:UNINITIATED
     stop]
 
@@ -137,9 +137,9 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    if debug_messages [ show (word "I bought a bus for district " district "." ticks)]]
+    if debug_messages [ debug (word "I bought a bus for district " district "." ticks)]]
   [
-    if debug_messages [ show (word "I was about to buy a bus for district " district ", but had capacity again.")]
+    if debug_messages [ debug (word "I was about to buy a bus for district " district ", but had capacity again.")]
     end-overloaded]
 end
 
