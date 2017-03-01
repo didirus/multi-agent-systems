@@ -149,7 +149,7 @@ end
 
 to create-world
   ;World's max-pxcor and max-pycor: 40,30.
-  import-drawing "adam-map.png"
+  ;import-drawing "adam-map.png"
   create-bus-stops
 end
 
@@ -169,7 +169,7 @@ to create-bus-stops
       set xcor item i xs
       set ycor item i ys
       set size 2
-      set shape "gvb-logo"
+      set shape "dot"
       set passengers_waiting []
       set passengers_that_arrived 0
       set color 109.9
@@ -203,7 +203,9 @@ to update-routes
       set ycors lput ycor ycors
     ]
     set route_size sqrt (((item 0 xcors - item 1 xcors) ^ 2) + ((item 0 ycors - item 1 ycors) ^ 2))
-    hide-link
+    ask links [ set thickness 0.2
+      set color 15]
+    ;hide-link
   ]
 end
 
@@ -404,6 +406,9 @@ end
 
 to update-bus-stops-colors
   ask bus_stops [
+    ;let nr_waiting (length passengers_waiting)
+    set label who; " " nr_waiting)
+    ;set label-color white
     ifelse length passengers_waiting <= 10
     [
       set color 109.9
@@ -506,7 +511,7 @@ to add-buses
       ]
       set inbox []
       update-expenses cost
-      set shape "bus"
+      set shape "dot"
       set size 2
       set xcor 22
       set ycor 21
@@ -572,6 +577,8 @@ to travel-to [bs_id]
   ask buses [
     if self = myself [
       set next_stop bs_id
+      set label (word "Bus: " bus_id " I: " track_index " N: " next_stop)
+      set label-color blue
     ]
   ]
   let next_stop_id int bs_id
@@ -776,7 +783,7 @@ GRAPHICS-WINDOW
 -1
 26.0
 1
-10
+14
 1
 1
 1
