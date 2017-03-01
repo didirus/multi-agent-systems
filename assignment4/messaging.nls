@@ -1,10 +1,12 @@
 to check-inbox
   ; Checks protocol of inbox messages, invokes associated 'follow' procedures.
-  ; For instance, procedure `follow-overloaded` for the 'overloaded' protocol.
+  ; For instance, procedure `follow-overloaded` for the 'overloaded' protocol.c
   
   foreach inbox [ let message ?
     (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2 ?3") "]") sender-of message body-of message details-of message)]
   set inbox []
+  
+  finish-protocols
 end
 
 to send [recipient protocol body details]

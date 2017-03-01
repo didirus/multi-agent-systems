@@ -10,6 +10,15 @@ to lead-protocols ; Loops through the lead procedures of all protocols.
   lead-overloaded
 end
 
+to finish-protocols ; Loops through the finish procedures of all protocols.
+  finish-overloaded
+  clear-temporary-memory
+end
+
+to clear-temporary-memory
+  set overloaded/other_buyers []
+end
+
 to lead-overloaded
   if overloaded/timer > 0 [
     ; Decrease waiting time to buy new buses.
@@ -28,17 +37,25 @@ to lead-overloaded
     
      ; Apparently, no-one in my district still has capacity. So buy!
      
-     if debug_messages [ show (word "No one on district " district " answered my call.")]
+     if debug_messages [ show (word "No one on district " district " answered my call." ticks)]
      buy
      stop]
   
   if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
-    
-    ; I just ordered a new bus, and I now see it has been
-    ; delivered. So I need to instruct it to drive in my district.
-    
-    send newest-bus? "overloaded" overloaded.come_to_my_district district
-    end-overloaded
+    ifelse newest-bus? - overloaded/newest_bus = 1 [
+      
+      ; I just ordered a new bus, and I now see it has been
+      ; delivered. So I need to instruct it to drive in my district.
+      
+      send newest-bus? "overloaded" overloaded.come_to_my_district district
+      end-overloaded]
+    [
+      print "----------------------------------------------------------------------------------------------------------------------------------------"
+      ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
+      ; need to identify each other, in order to decide who of us will instruct the new
+      ; buses to which districts they belong.
+      broadcast "overloaded" overloaded.we_both_bought district
+      set overloaded/state overloaded:BOUGHT_SIMULTANEOUSLY]  
     stop]
 end
 
@@ -78,7 +95,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     
     ; A fellow district member still has capacity, so I don't have to buy.
     
-    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for district " district ".")] 
+    if debug_messages [ show (word "Bus " sender " told me not to buy a bus for district " district "." ticks)] 
     end-overloaded
     stop]
   
@@ -90,9 +107,29 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set-track 3 item district districts
     set next_stop item track_index track 
     set desire "routine"
-    if debug_messages [ show (word "I have been instructed to drive in district " district ".")]
+    if debug_messages [ show (word "I have been instructed to drive in district " district "." ticks)]
     set overloaded/state overloaded:UNINITIATED
     stop]
+
+  if body = overloaded.we_both_bought and overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
+    if sender < overloaded/oldest_buyer [ set overloaded/oldest_buyer sender ]
+    set overloaded/other_buyers lput details overloaded/other_buyers
+    stop]
+end
+
+to finish-overloaded
+  if overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
+    if bus_id < overloaded/oldest_buyer [
+      ; Apparently I was the oldest of the simultaneous buyers. Now that I know everyone's district,
+      ; I will instruct the new buses where to go.
+      
+      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_my_district district
+    
+      let i 0
+    
+      while [ i < length overloaded/other_buyers ] [
+        send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_my_district item i overloaded/other_buyers]]
+    end-overloaded]
 end
 
 to buy
@@ -100,7 +137,7 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    if debug_messages [ show (word "I bought a bus for district " district ".")]]
+    if debug_messages [ show (word "I bought a bus for district " district "." ticks)]]
   [
     if debug_messages [ show (word "I was about to buy a bus for district " district ", but had capacity again.")]
     end-overloaded]

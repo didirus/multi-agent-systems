@@ -11,13 +11,12 @@ to init-buses
   ]
   
   set-junctions 
-  print junctions
   set dijkstra read-dijkstra?
   
   ; _______
   ; CONFIGS
   set debug_traffic false
-  set debug_messages false
+  set debug_messages true
   set debug_purchases false
   
   ; _________
@@ -32,6 +31,7 @@ to init-buses
   set overloaded.do_not_buy "do not buy"
   set overloaded.we_collided "we collided"
   set overloaded.come_to_my_district "come to my district"
+  set overloaded.we_both_bought "we both bought"
   
   set overloaded/state overloaded:UNINITIATED
   set overloaded/timeout 50
@@ -64,6 +64,6 @@ to init-buses
   
   if debug_messages or debug_purchases [
     ifelse district = -1 
-      [show (word "I am created. No track yet.")]
+      [show (word "I am created. No track yet." ticks)]
       [show (word "I am created. District: " district)]]
 end

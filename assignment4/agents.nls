@@ -41,21 +41,25 @@ buses-own [
   ; names with . are protocol messages, and names
   ; with / are protocol-specific variables.
   
-  overloaded:UNINITIATED         ; Protocol not started.
-  overloaded:ABOUT_TO_BUY        ; Start of protocol; just got overloaded.
-  overloaded:INSTRUCTING         ; Bought a new bus; need to instruct him where to go.
-  overloaded:COLLIDED            ; Other bus on my track also just overloaded.
-  overloaded:WAKING_UP           ; I have just been bought; need to receive instructions.
+  overloaded:UNINITIATED            ; Protocol not started.
+  overloaded:ABOUT_TO_BUY           ; Start of protocol; just got overloaded.
+  overloaded:INSTRUCTING            ; Bought a new bus; need to instruct him where to go.
+  overloaded:COLLIDED               ; Other bus on my track also just overloaded.
+  overloaded:WAKING_UP              ; I have just been bought; need to receive instructions.
+  overloaded:BOUGHT_SIMULTANEOUSLY  ; I detected a simultaneous buy; need to decide who will instruct new buses.
   
   overloaded.want_to_buy         ; Broadcast messages telling fellow track members I just overloaded.
   overloaded.do_not_buy          ; Private message telling fellow track member I still have capacity.
   overloaded.we_collided         ; Private message telling fellow track member I also want to buy.
   overloaded.come_to_my_district ; Private message telling newly bought bus which track to go.
+  overloaded.we_both_bought      ; Broadcast message to identify simultaneous buyers
   
   overloaded/state               ; Keeps track of the protocol state.
   overloaded/timeout             ; A constant; determines how long to wait after buying bus.
   overloaded/timer               ; To make sure I don't buy a new bus right after I did.
   overloaded/dice                ; During a collision, to keep track of my random number.
+  overloaded/other_buyers        ; Temporary store districts of simultaneous buyers.
+  overloaded/oldest_buyer        ; Temporarily store ID of olders buyer.
   overloaded/newest_bus          ; The id of the newest bus right before I bought one.
 ]
 
