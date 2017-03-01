@@ -40,30 +40,42 @@ to mention [message passenger]
 end
 
 to set-track [source target]
-  let shortest_stop 99 
-  let min_cost 10000000
-  foreach target [
-    let busstop ?
-    let output table:get dijkstra (list source busstop)
-    let cost item 1 output
-    if cost < min_cost [
-      set shortest_stop busstop
-      set min_cost cost]
-  ]
-  let route first table:get dijkstra (list source shortest_stop)
-  ifelse length route = 1 [
-    update-track
-  ]
-  [ set track route ] ; set the route to the nearest busstop in district
+  ifelse member? source target
+  [update-track]
+  [
+    let shortest_stop 99 
+    let min_cost 10000000
+    foreach target [
+      let busstop ?
+      let output table:get dijkstra (list source busstop)
+      let cost item 1 output
+      if cost < min_cost [
+        set shortest_stop busstop
+        set min_cost cost]]
+    let route first table:get dijkstra (list source shortest_stop)
+    set track route 
+    print (word "set track " bus_id " " track " " ticks)] ; set the route to the nearest busstop in district
 end
 
 to update-track
+  
   ; If end of track, update
   if district != -1 [
-    if track = 0 or current_stop = last track [
-      
+    if track = 0 or current_stop = last track [  
+      if track != 0[
+        if current_stop = last track [
+        print (word "LASSTT B: " bus_id " ind: " track_index  " cur: " current_stop " nex: " next_stop)
+      ]]
       set track item district districts ; pick default route
       
-      set track_index position current_stop track
-    ]]
+      set track_index position current_stop track 
+      if item track_index track = current_stop [
+        print (word "added nr for " bus_id " i: " track_index)
+        set track_index track_index ]
+      
+      print (word "pos " position current_stop track " cur " current_stop " ind " track_index)
+    ]
+    ]
+  
+  print (word "update track " bus_id " " track " " ticks)
 end

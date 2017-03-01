@@ -69,10 +69,11 @@ to execute-actions
   
   set desire determine-desire?
   update-intentions
+  update-track
   perform-actions
   check-inbox
   lead-protocols
-  update-track
+  
   
   if (bus_id = 24) and (buses_bought < (length districts - 1)) [
     ; I'm the first bus, and there are still tracks without bus! Buy new one.
