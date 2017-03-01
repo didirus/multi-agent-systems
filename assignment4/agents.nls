@@ -20,6 +20,7 @@ buses-own [
   debug_traffic   ; Set to true to make buses talk about picking up and dropping off passengers.
   debug_messages  ; Set to true to make buses talk about everything message / protocol.
   debug_purchases ; Set to true to make buses say something right after they've been bought.
+  debug_ticks     ; Set to true to show the tick number at each debug output.
   
   ; CONSTANTS
   districts       ; List of all tracks and their stops.

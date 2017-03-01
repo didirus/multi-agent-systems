@@ -16,8 +16,9 @@ to init-buses
   ; _______
   ; CONFIGS
   set debug_traffic false
-  set debug_messages false
-  set debug_purchases false
+  set debug_messages true
+  set debug_purchases true
+  set debug_ticks true
   
   ; _________
   ; PROTOCOLS
@@ -41,7 +42,7 @@ to init-buses
   ; VARIABLES
   set track_index 0
   set buses_bought 0
-
+  print (word "init bus " bus_id " " ticks)
   ifelse (bus_id - 24) < length districts [
     ; I'm one of the first few buses. Go to a track that has no
     ; bus yet, and set desire to 'routine' to start driving.
@@ -64,6 +65,6 @@ to init-buses
   
   if debug_messages or debug_purchases [
     ifelse district = -1 
-      [show (word "I am created. No track yet." ticks)]
-      [show (word "I am created. District: " district)]]
+      [debug (word "I am created. No track yet." ticks)]
+      [debug (word "I am created. District: " district)]]
 end

@@ -89,3 +89,10 @@ to set-junctions
   ; store hash table in property
   set junctions juncts
 end
+
+to debug [text]
+  ifelse debug_ticks[
+    show (word "[" ticks "] " text)]
+  [
+    show text]
+end
