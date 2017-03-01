@@ -50,7 +50,6 @@ to lead-overloaded
       send newest-bus? "overloaded" overloaded.come_to_my_district district
       end-overloaded]
     [
-      print "----------------------------------------------------------------------------------------------------------------------------------------"
       ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
       ; need to identify each other, in order to decide who of us will instruct the new
       ; buses to which districts they belong.

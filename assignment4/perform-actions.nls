@@ -53,29 +53,17 @@ to set-track [source target]
         set shortest_stop busstop
         set min_cost cost]]
     let route first table:get dijkstra (list source shortest_stop)
-    set track route 
-    print (word "set track " bus_id " " track " " ticks)] ; set the route to the nearest busstop in district
+    set track route ]
+
 end
 
 to update-track
-  
   ; If end of track, update
   if district != -1 [
     if track = 0 or current_stop = last track [  
-      if track != 0[
-        if current_stop = last track [
-        print (word "LASSTT B: " bus_id " ind: " track_index  " cur: " current_stop " nex: " next_stop)
-      ]]
-      set track item district districts ; pick default route
-      
+      set track item district districts ; pick default route      
       set track_index position current_stop track 
       if item track_index track = current_stop [
-        print (word "added nr for " bus_id " i: " track_index)
-        set track_index track_index ]
-      
-      print (word "pos " position current_stop track " cur " current_stop " ind " track_index)
-    ]
-    ]
-  
-  print (word "update track " bus_id " " track " " ticks)
+        set track_index track_index ]]
+  ]
 end
