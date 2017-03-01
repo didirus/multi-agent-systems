@@ -41,8 +41,10 @@ end
 
 to set-track [source target]
   ifelse member? source target
-  [update-track]
+  [update-track
+    if bus_id = 24 [show "already in district"] ]
   [
+    if bus_id = 24 [show "not yet in district"] 
     let shortest_stop 99 
     let min_cost 10000000
     foreach target [
@@ -54,13 +56,16 @@ to set-track [source target]
         set min_cost cost]]
     let route first table:get dijkstra (list source shortest_stop)
     set track route ]
-
 end
 
 to update-track
   ; If end of track, update
   if district != -1 [
     if track = 0 or current_stop = last track [  
+      if bus_id = 24 [
+        show (word "Do I have a track? " track != 0)
+        if track != item district districts[
+          show "My track will now change to the default route"]]
       set track item district districts ; pick default route      
       set track_index position current_stop track 
       if item track_index track = current_stop [
