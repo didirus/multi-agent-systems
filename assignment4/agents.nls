@@ -35,6 +35,7 @@ buses-own [
   district        ; The index of the track this bus is currently driving.
   track           ; Temporary goal route
   track_index     ; Pointer to keep track of where on the track this bus is currently at.
+  in_district     ; Boolean initialised to 'false', 'true' when bus reached its district for the first time
   
   ; Beneath are protocol states and messages and
   ; protocol-specific variables the bus is keeping
@@ -79,11 +80,11 @@ to execute-actions
   check-inbox
   lead-protocols
   
-  
   if (bus_id = 24) and (buses_bought < (length districts - 1)) [
     ; I'm the first bus, and there are still tracks without bus! Buy new one.
       add-bus 1
       set buses_bought buses_bought + 1 ]
+
 end
 
 to-report determine-desire?

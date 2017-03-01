@@ -6,6 +6,7 @@ to perform-actions
   if at-stop? [
     if intention = "drop_off" [drop-off-passengers]
     if intention = "pick_up" [pick-up-passengers]]
+  
   if intention = "drive"[
     if next_stop = -1 [set next_stop next-stop?]
     travel-to next_stop]
@@ -30,7 +31,6 @@ to pick-up [passenger] pick-up-passenger id-of passenger end
 to drop-off [passenger] drop-off-passenger id-of passenger end
 
 to-report next-stop?
-  ;let stops_on_track route
   set track_index (track_index + 1) mod (length track)
   report item track_index track
 end
@@ -40,11 +40,20 @@ to mention [message passenger]
 end
 
 to set-track [source target]
+  ; Called when initialising a bus
+  ; Checks whether the bus is already in its district
+  ; If in district: set to default district route
+  ; Else, find shortest path to district
+  
   ifelse member? source target
-  [update-track
-    if bus_id = 24 [show "already in district"] ]
+  
+  [ update-track
+    set in_district true] 
   [
-    if bus_id = 24 [show "not yet in district"] 
+    ; Determine the shortest path to the district
+    ; by evaluating every busstop in the district 
+    ; with Dijkstra's algorithm
+    
     let shortest_stop 99 
     let min_cost 10000000
     foreach target [
@@ -59,16 +68,8 @@ to set-track [source target]
 end
 
 to update-track
-  ; If end of track, update
   if district != -1 [
     if track = 0 or current_stop = last track [  
-      if bus_id = 24 [
-        show (word "Do I have a track? " track != 0)
-        if track != item district districts[
-          show "My track will now change to the default route"]]
-      set track item district districts ; pick default route      
-      set track_index position current_stop track 
-      if item track_index track = current_stop [
-        set track_index track_index ]]
-  ]
+      set track item district districts ; pick default district route      
+      if not in_district [set track_index position current_stop track ]]]
 end
