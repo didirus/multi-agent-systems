@@ -27,6 +27,7 @@ buses-own [
   districts       ; List of all tracks and their stops.
   junctions       ; List of junction between tracks.
   dijkstra        ; Table of dijkstra algorithm results
+  marker          ; Marker symbol for easy debugging.
   
   ; VARIABLES
   desire          ; The current desire of this bus.
