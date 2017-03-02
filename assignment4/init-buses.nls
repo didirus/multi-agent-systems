@@ -16,9 +16,9 @@ to init-buses
   ; _______
   ; CONFIGS
   set debug_traffic false
-  set debug_messages false
+  set debug_messages true
   set debug_purchases false
-  set debug_ticks false
+  set debug_ticks true
   
   ; _________
   ; PROTOCOLS
@@ -27,6 +27,9 @@ to init-buses
   set overloaded:INSTRUCTING "instructing"
   set overloaded:COLLIDED "collided"
   set overloaded:WAKING_UP "waking_up"
+  set overloaded:BOUGHT_SIMULTANEOUSLY "bought_simultaneously"
+  set overloaded:AWAITING_RESPONSE "awaiting_reponse"
+  set overloaded:RESOLVING_SIMULTANEOUS_BUY "resolving_simultaneous_buy"
   
   set overloaded.want_to_buy "want to buy"
   set overloaded.do_not_buy "do not buy"
@@ -37,6 +40,9 @@ to init-buses
   set overloaded/state overloaded:UNINITIATED
   set overloaded/timeout 50
   set overloaded/timer 0
+  set overloaded/oldest_buyer 9999
+  set overloaded/other_buyers []
+  set overloaded/oldest_requester 9999
   
   ; _________
   ; VARIABLES

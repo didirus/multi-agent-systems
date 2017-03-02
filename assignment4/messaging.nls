@@ -3,17 +3,18 @@ to check-inbox
   ; For instance, procedure `follow-overloaded` for the 'overloaded' protocol.c
   
   foreach inbox [ let message ?
-    (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2 ?3") "]") sender-of message body-of message details-of message)]
-  set inbox []
-  
-  finish-protocols
+    if tick-of message = (ticks - 1) [
+      (run runresult (word "task [" (word "follow-" protocol-of message " ?1 ?2 ?3") "]") sender-of message body-of message details-of message)
+      
+      ; clear messages from previous ticks
+      set inbox remove message inbox]]
 end
 
 to send [recipient protocol body details]
   ; Sends message of `protocol` to `recipient` containing `body` and `details`.
   
   send-message recipient draft-message protocol body details
-  if debug_messages [show (word "I sent: " to-string-outgoing recipient protocol body details)]
+  if debug_messages [debug (word "I sent: " to-string-outgoing recipient protocol body details)]
 end
 
 to broadcast [protocol body details]
@@ -21,7 +22,7 @@ to broadcast [protocol body details]
   
   foreach all-buses? [ let recipient ?
     send-message recipient draft-message protocol body details]
-  if debug_messages [show (word "I sent: " to-string-outgoing "broad" protocol body details)]
+  if debug_messages [debug (word "I sent: " to-string-outgoing "broad" protocol body details)]
 end
 
 to-report draft-message [protocol body details]

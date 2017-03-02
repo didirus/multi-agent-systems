@@ -10,13 +10,10 @@ to lead-protocols ; Loops through the lead procedures of all protocols.
   lead-overloaded
 end
 
-to finish-protocols ; Loops through the finish procedures of all protocols.
-  finish-overloaded
-  clear-temporary-memory
-end
-
 to clear-temporary-memory
   set overloaded/other_buyers []
+  set overloaded/oldest_buyer 9999
+  set overloaded/oldest_requester 9999
 end
 
 to lead-overloaded
@@ -30,14 +27,38 @@ to lead-overloaded
       ; I'm overloaded and waited long enough, so initiate protocol!
       
       broadcast "overloaded" overloaded.want_to_buy district  ; Broadcast 'want to buy' to all other buses.
-      set overloaded/state overloaded:ABOUT_TO_BUY]        ; Change internal protocol state accordingly.
+      set overloaded/state overloaded:AWAITING_RESPONSE]      ; Change internal protocol state accordingly.
+    stop]
+  
+  if overloaded/state = overloaded:AWAITING_RESPONSE [
+    
+    ; In the previous tick I decided to buy a bus. This tick I
+    ; am awaiting responses of other buses. I will switch my state to
+    ; indicate that I will try and buy a bus next tick 
+    
+    set overloaded/state overloaded:ABOUT_TO_BUY
+    stop]
+  
+  if overloaded/state = overloaded:COLLIDED [
+    
+    ; During this tick I've received messages of other buses, with the same district as mine,
+    ; that (in the previous tick) decided to buy a bus. I can now decide which of us will buy
+    ; a bus, based on our age: the oldest bus wil try to buy a bus next tick (indicated by my new
+    ; state). Other buses will now stop their protocol.
+    
+    ifelse bus_id < overloaded/oldest_requester [
+      set overloaded/state overloaded:ABOUT_TO_BUY
+      if debug_messages [ debug (word "I, bus " bus_id " am the oldest bus during collision, I will try to buy the bus next tick.")] ]
+    [ 
+      if debug_messages [ debug (word "I, bus " bus_id " am not the oldest bus during collision, I stop the protocol.")]
+      end-overloaded ]
     stop]
   
   if overloaded/state = overloaded:ABOUT_TO_BUY [
     
      ; Apparently, no-one in my district still has capacity. So buy!
      
-     if debug_messages [ debug (word "No one on district " district " answered my call." ticks)]
+     if debug_messages [ debug (word "No one on district " district " answered my call.")]
      buy
      stop]
   
@@ -56,6 +77,25 @@ to lead-overloaded
       broadcast "overloaded" overloaded.we_both_bought district
       set overloaded/state overloaded:BOUGHT_SIMULTANEOUSLY]  
     stop]
+  
+  if overloaded/state = overloaded:RESOLVING_SIMULTANEOUS_BUY [
+    if bus_id < overloaded/oldest_buyer [
+      
+      ; Apparently I was the oldest of the simultaneous buyers. Now that I know everyone's district,
+      ; I will instruct the new buses where to go.
+
+      ; Decide for the first bus to go to my district.
+      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_my_district district
+      
+      ; Distribute other buses accordingly.
+      let i 0
+      while [ i < length overloaded/other_buyers ] [
+        send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_my_district item i overloaded/other_buyers
+        set i (i + 1)]]
+    
+    ; for all buses involved, end the protocol
+    end-overloaded
+    stop]
 end
 
 to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
@@ -68,33 +108,22 @@ to follow-overloaded [sender body details] ; This function is called after incom
     if not overloaded? [send sender "overloaded" overloaded.do_not_buy "void"]
     stop]
   
-  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:ABOUT_TO_BUY [
+  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:AWAITING_RESPONSE [
     
     ; A fellow district member also wants to buy. Collision!
-    ; We both throw a dice; highest number wins and buys.
+    ; We keep track of the oldest bus, which is the one responsible for buying a bus
     
-    set overloaded/dice random 500
-    send sender "overloaded" overloaded.we_collided overloaded/dice ; Store the number I got.
+    if debug_messages [ debug (word "I, bus: " bus_id ", collided with other bus:" sender ", during buying process, we will resolve this conflict.")] 
+    
+    if sender < overloaded/oldest_requester [ set overloaded/oldest_requester sender ]
     set overloaded/state overloaded:COLLIDED
     stop]
   
-  if body = overloaded.we_collided [
-    
-    ; I received the dice throw of the other bus. Let's see who won!
-    
-    ifelse overloaded/dice >= details [
-      if debug_messages [ debug (word "Won! I threw " overloaded/dice ", bus " sender " threw " details ".")]
-      buy]
-    [
-      if debug_messages [ debug (word "Lost :(. I threw " overloaded/dice ", bus " sender " threw " details ".")]
-      end-overloaded]
-    stop]
-  
   if body = overloaded.do_not_buy [
-    
+
     ; A fellow district member still has capacity, so I don't have to buy.
     
-    if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district "." ticks)] 
+    if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district ".")] 
     end-overloaded
     stop]
   
@@ -106,29 +135,22 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set-track 3 item district districts
     set next_stop -1;item track_index track 
     set desire "routine"
-    if debug_messages [ debug (word "I have been instructed to drive in district " district "." ticks)]
+    if debug_messages [ debug (word "I have been instructed to drive in district " district ".")]
     set overloaded/state overloaded:UNINITIATED
     stop]
 
   if body = overloaded.we_both_bought and overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
+    
+    ; I detect the others which also simultaneously bought a bus and store their bus IDs
+    ; This tick, I will decide which of us will buy the bus
+    
+    if debug_messages [ debug (word "I, bus: " bus_id ", bought a bus at the same time as:" sender ", we will resolve this conflict.")] 
+    
     if sender < overloaded/oldest_buyer [ set overloaded/oldest_buyer sender ]
     set overloaded/other_buyers lput details overloaded/other_buyers
+    set overloaded/state overloaded:RESOLVING_SIMULTANEOUS_BUY
+    
     stop]
-end
-
-to finish-overloaded
-  if overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
-    if bus_id < overloaded/oldest_buyer [
-      ; Apparently I was the oldest of the simultaneous buyers. Now that I know everyone's district,
-      ; I will instruct the new buses where to go.
-      
-      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_my_district district
-    
-      let i 0
-    
-      while [ i < length overloaded/other_buyers ] [
-        send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_my_district item i overloaded/other_buyers]]
-    end-overloaded]
 end
 
 to buy
@@ -136,13 +158,15 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    if debug_messages [ debug (word "I bought a bus for district " district "." ticks)]]
+    if debug_messages [ debug (word "I bought a bus for district " district ".")]]
   [
     if debug_messages [ debug (word "I was about to buy a bus for district " district ", but had capacity again.")]
     end-overloaded]
 end
 
 to end-overloaded
+  if debug_messages [ debug (word "I am ending the protocol, my new state will be unitiated, my old state was: " overloaded/state ".")]
   set overloaded/timer overloaded/timeout
   set overloaded/state overloaded:UNINITIATED
+  clear-temporary-memory
 end
