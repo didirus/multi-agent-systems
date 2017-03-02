@@ -83,7 +83,7 @@ to lead-overloaded
        if debug_messages [ debug (word "District " item 0 most_quiet_district " can help me out! I will assign a random bus of that district to mine.")]
        print "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
        let helper one-of table:get overloaded/other_district_blockers item 0 most_quiet_district
-       send helper "overloaded" overloaded.come_to_my_district district
+       send helper "overloaded" overloaded.come_to_district district
        end-overloaded]
      
      ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
@@ -98,7 +98,7 @@ to lead-overloaded
       ; I just ordered a new bus, and I now see it has been
       ; delivered. So I need to instruct it to drive in my district.
       
-      send newest-bus? "overloaded" overloaded.come_to_my_district district
+      send newest-bus? "overloaded" overloaded.come_to_district district
       end-overloaded]
     [
       ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
@@ -115,12 +115,12 @@ to lead-overloaded
       ; I will instruct the new buses where to go.
 
       ; Decide for the first bus to go to my district.
-      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_my_district district
+      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_district district
       
       ; Distribute other buses accordingly.
       let i 0
       while [ i < length overloaded/other_buyers ] [
-        send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_my_district item i overloaded/other_buyers
+        send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_district item i overloaded/other_buyers
         set i (i + 1)]]
     
     ; for all buses involved, end the protocol
@@ -173,7 +173,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
  
     stop]
   
-  if body = overloaded.come_to_my_district [
+  if body = overloaded.come_to_district [
     
     ; I have just been bought, and this message contains the district I should be driving.
     

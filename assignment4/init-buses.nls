@@ -34,7 +34,7 @@ to init-buses
   set overloaded.want_to_buy "want to buy"
   set overloaded.do_not_buy "do not buy"
   set overloaded.we_collided "we collided"
-  set overloaded.come_to_my_district "come to my district"
+  set overloaded.come_to_district "come to district"
   set overloaded.we_both_bought "we both bought"
   
   set overloaded/state overloaded:UNINITIATED
