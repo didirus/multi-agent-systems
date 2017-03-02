@@ -17,7 +17,7 @@ to init-buses
   ; CONFIGS
   set debug_traffic false
   set debug_messages true
-  set debug_purchases false
+  set debug_purchases true
   set debug_ticks true
   
   ; _________
@@ -74,6 +74,6 @@ to init-buses
    
   if debug_messages or debug_purchases [
     ifelse district = -1 
-      [debug (word "I am created. No track yet." ticks)]
+      [debug (word "I am created. No track yet.")]
       [debug (word "I am created. District: " district)]]
 end

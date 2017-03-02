@@ -87,7 +87,7 @@ to lead-overloaded
        end-overloaded]
      
      ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
-     [ if debug_messages [ debug (word "No one on district " district " answered my call.")]
+     [ if debug_messages [ debug (word "No one on district " district " answered my call. No other districts have enough capacity.")]
      buy]
 
      stop]
