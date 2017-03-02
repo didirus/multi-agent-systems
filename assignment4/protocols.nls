@@ -104,6 +104,7 @@ to lead-overloaded
       ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
       ; need to identify each other, in order to decide who of us will instruct the new
       ; buses to which districts they belong.
+      
       broadcast "overloaded" overloaded.we_both_bought district
       set overloaded/state overloaded:BOUGHT_SIMULTANEOUSLY]  
     stop]
@@ -118,13 +119,13 @@ to lead-overloaded
       send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_district district
       
       ; Distribute other buses accordingly.
+      
       let i 0
       while [ i < length overloaded/other_buyers ] [
         send (overloaded/newest_bus + 2 + i) "overloaded" overloaded.come_to_district item i overloaded/other_buyers
         set i (i + 1)]]
     
-    ; for all buses involved, end the protocol
-    end-overloaded
+    end-overloaded ; For all buses involved, end the protocol.
     stop]
 end
 
@@ -177,6 +178,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     
     ; I have just been bought, and this message contains the district I should be driving.
     
+    if debug_messages [ debug (word "I have been assigned to D" details ".")]
     set district details
     let source current_stop
     if source = -1 
@@ -184,7 +186,6 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set-track source item district districts
     set next_stop -1
     set desire "routine"
-    if debug_messages [ debug (word "I have been assigned to D" district ".")]
     set overloaded/state overloaded:UNINITIATED
     stop]
 
@@ -214,7 +215,7 @@ to buy
 end
 
 to end-overloaded
-  if debug_messages [ debug (word "I am ending the protocol from state " overloaded/state ".")]
+  if debug_messages [ debug (word "I am ending the protocol from state '" overloaded/state "'.")]
   set overloaded/timer overloaded/timeout
   set overloaded/state overloaded:UNINITIATED
   clear-temporary-memory
