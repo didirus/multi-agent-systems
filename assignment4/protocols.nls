@@ -11,6 +11,7 @@ to lead-protocols ; Loops through the lead procedures of all protocols.
 end
 
 to clear-temporary-memory
+  reset-overloaded/other_district_blockers
   set overloaded/other_buyers []
   set overloaded/oldest_buyer 9999
   set overloaded/oldest_requester 9999
@@ -57,9 +58,38 @@ to lead-overloaded
   if overloaded/state = overloaded:ABOUT_TO_BUY [
     
      ; Apparently, no-one in my district still has capacity. So buy!
+     ; I will check my stored messages if other districts can help out, if so I 
+     ; will call someone from another district to come and help me. Else: buy a new bus
      
-     if debug_messages [ debug (word "No one on district " district " answered my call.")]
-     buy
+     ; initiate tracker variable
+     ; keeps track of [#district_with_most_available_buses #amount_of_available_buses_there]
+     let most_quiet_district [999 999]
+          
+     ; for all other districts
+     foreach districts [
+       let i position ? districts
+      
+       ; if it is not my own district
+       if i != district [
+         let helpers table:get overloaded/other_district_blockers i
+         
+         ; if threshold of 2 is reached and a new record is seen, store in tracker variable
+         if length helpers >= 2 and length helpers < item 1 most_quiet_district [
+           set most_quiet_district (list i length helpers) ]]]
+     
+     ; check for the most quiet district. If another district is quiet enough, command a bus
+     ; to come to my district.
+     ifelse item 0 most_quiet_district != 999 [
+       if debug_messages [ debug (word "District " item 0 most_quiet_district " can help me out! I will assign a random bus of that district to mine.")]
+       print "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+       let helper one-of table:get overloaded/other_district_blockers item 0 most_quiet_district
+       send helper "overloaded" overloaded.come_to_my_district district
+       end-overloaded]
+     
+     ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
+     [ if debug_messages [ debug (word "No one on district " district " answered my call.")]
+     buy]
+
      stop]
   
   if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
@@ -105,8 +135,17 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; A fellow district member wants to buy, but I still
     ; have capacity. So I block his buy.
     
-    if not overloaded? [send sender "overloaded" overloaded.do_not_buy "void"]
+    if not overloaded? [send sender "overloaded" overloaded.do_not_buy district]
     stop]
+  
+  if body = overloaded.want_to_buy and details != district and overloaded/state = overloaded:UNINITIATED [
+    
+    ; Someone from another district wants to buy, but I still
+    ; have capacity. Ill inform him if I still have capacity.
+    
+    if not overloaded? [send sender "overloaded" overloaded.do_not_buy district]
+    stop]
+  
   
   if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:AWAITING_RESPONSE [
     
@@ -122,9 +161,16 @@ to follow-overloaded [sender body details] ; This function is called after incom
   if body = overloaded.do_not_buy [
 
     ; A fellow district member still has capacity, so I don't have to buy.
-    
-    if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district ".")] 
-    end-overloaded
+    ifelse details = district [
+      if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district ", his district is: " details ".")] 
+      end-overloaded]
+    ; else: Someone from another district wants to help out
+    [ 
+      if debug_messages [ debug (word "Bus " sender " told me he might be available to help out, his district is: " details ".")] 
+      let other_district_blockers table:get overloaded/other_district_blockers details
+      set other_district_blockers lput sender other_district_blockers
+      table:put overloaded/other_district_blockers details other_district_blockers]
+ 
     stop]
   
   if body = overloaded.come_to_my_district [

@@ -65,6 +65,7 @@ buses-own [
   overloaded/other_buyers                ; Temporary store districts of simultaneous buyers.
   overloaded/oldest_buyer                ; Temporarily store ID of olders buyer.
   overloaded/newest_bus                  ; The id of the newest bus right before I bought one.
+  overloaded/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out
 ]
 
 to execute-actions

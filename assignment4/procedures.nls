@@ -96,3 +96,13 @@ to debug [text]
   [
     show text]
 end
+
+to reset-overloaded/other_district_blockers
+  set overloaded/other_district_blockers table:make
+  foreach districts [
+    let i position ? districts
+    if i != district [
+      table:put overloaded/other_district_blockers i []
+    ]
+  ] 
+end

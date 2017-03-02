@@ -45,6 +45,12 @@ to set-track [source target]
   ; If in district: set to default district route
   ; Else, find shortest path to district
   
+  ; property used to track available buses in other districts when buying.
+  ; based on it's own district, therefore better to set it here then
+  ; in init-buses
+  if debug_traffic [ debug (word "I am setting my track, therefore also resetting my overloaded/other_district_blockers information.")] 
+  reset-overloaded/other_district_blockers
+  
   ifelse member? source target
   
   [ update-track
