@@ -178,7 +178,10 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; I have just been bought, and this message contains the district I should be driving.
     
     set district details
-    set-track 3 item district districts
+    let source current_stop
+    if source = -1 
+    [ set source next_stop ]
+    set-track source item district districts
     set next_stop -1
     set desire "routine"
     if debug_messages [ debug (word "I have been assigned to D" district ".")]
