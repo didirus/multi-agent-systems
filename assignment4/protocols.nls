@@ -179,7 +179,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     
     set district details
     set-track 3 item district districts
-    set next_stop -1;item track_index track 
+    set next_stop -1
     set desire "routine"
     if debug_messages [ debug (word "I have been instructed to drive in district " district ".")]
     set overloaded/state overloaded:UNINITIATED
