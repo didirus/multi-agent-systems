@@ -16,16 +16,10 @@ to init-buses
   ; _______
   ; CONFIGS
   set debug_traffic false
-<<<<<<< HEAD
-  set debug_messages false
-  set debug_purchases false
-  set debug_ticks false
-=======
   set debug_messages true
   set debug_purchases true
   set debug_show_ticks true
   set debug_show_districts true
->>>>>>> origin/master
   
   ; _________
   ; PROTOCOLS

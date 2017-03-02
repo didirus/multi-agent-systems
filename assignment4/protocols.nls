@@ -162,7 +162,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
 
     ; A fellow district member still has capacity, so I don't have to buy.
     ifelse details = district [
-      if debug_messages [ debug (word "Bus " sender " from D" details " told me not to buy a bus.)] 
+      if debug_messages [ debug (word "Bus " sender " from D" details " told me not to buy a bus.")] 
       end-overloaded]
     ; else: Someone from another district wants to help out
     [ 
