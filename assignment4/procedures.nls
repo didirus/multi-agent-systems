@@ -75,10 +75,10 @@ to set-junctions
   let juncts table:make 
   
   ; for all district combinations
-  foreach districts [
+  foreach districts [                                        ; district 1 = i
     let i ?
-    let index_i position i districts
-    foreach districts [
+    let index_i position i districts 
+    foreach districts [                                      ; district 2 = j
       let j ?
       let index_j position j districts
       

@@ -29,14 +29,43 @@ to-report wants-to-leave [passenger]
   ; Determines if `passenger` wants to leave at the current stop. This
   ; is the case if it is his destination, or if he needs to transfer here.
   
-  report (destination-of passenger = current_stop) or (at-junction? and not in-my-district destination-of passenger)
+  report (destination-of passenger = current_stop) or (at-junction? and not fastest-option? destination-of passenger);in-my-district destination-of passenger)
 end
 
 to-report wants-to-enter [passenger]
   ; Determines if `passenger` wants to enter. This is the case
   ; if his destination is in the district I'm driving.
   
-  report not at-junction? or in-my-district destination-of passenger
+  report not at-junction? or fastest-option? destination-of passenger ;in-my-district destination-of passenger
+end
+
+to-report fastest-option? [destination]
+  let route first table:get dijkstra (list current_stop destination)
+  
+  let fastest? true
+  let my_reach 0
+  
+  ; My reach: check how far in the passengers shortest path I reach
+  foreach route [
+    let busstop ?
+    if member? busstop item district districts [
+      if position busstop route + 1 > my_reach [
+        set my_reach position busstop route + 1 ]]]
+  
+  ; This reach: Check how far in the passengers shortest path the overlapping districts reach
+  foreach districts [
+    let some_district ?
+    if some_district != item district districts[
+      if member? current_stop some_district [
+        let this_reach 0
+        foreach route [
+          let busstop ?
+          if member? busstop some_district [
+            if position busstop route > this_reach [
+              set this_reach position busstop route ]]]
+        if this_reach > my_reach [
+          set fastest? false]]]]
+  report fastest?
 end
 
 to-report destination-of [passenger] report item 1 passenger end
