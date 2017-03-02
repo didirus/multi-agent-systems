@@ -48,9 +48,9 @@ to-report fastest-option? [destination]
   ; My reach: check how far in the passengers shortest path I reach
   foreach route [
     let busstop ?
-    if member? busstop item district districts [
-      if position busstop route + 1 > my_reach [
-        set my_reach position busstop route + 1 ]]]
+    if member? busstop item district districts or member? busstop track [
+      if position busstop route > my_reach [
+        set my_reach position busstop route ]]]
   
   ; This reach: Check how far in the passengers shortest path the overlapping districts reach
   foreach districts [

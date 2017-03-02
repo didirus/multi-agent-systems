@@ -17,15 +17,17 @@ buses-own [
   next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
   
   ; CONFIGS
-  debug_traffic   ; Set to true to make buses talk about picking up and dropping off passengers.
-  debug_messages  ; Set to true to make buses talk about everything message / protocol.
-  debug_purchases ; Set to true to make buses say something right after they've been bought.
-  debug_ticks     ; Set to true to show the tick number at each debug output.
+  debug_traffic        ; Set to true to make buses talk about picking up and dropping off passengers.
+  debug_messages       ; Set to true to make buses talk about everything message / protocol.
+  debug_purchases      ; Set to true to make buses say something right after they've been bought.
+  debug_show_ticks     ; Set to true to show the tick number at each debug output.
+  debug_show_districts ; Set to true to show the district number at each debug output.
   
   ; CONSTANTS
   districts       ; List of all tracks and their stops.
   junctions       ; List of junction between tracks.
   dijkstra        ; Table of dijkstra algorithm results
+  marker          ; Marker symbol for easy debugging.
   
   ; VARIABLES
   desire          ; The current desire of this bus.
@@ -55,7 +57,7 @@ buses-own [
   overloaded.want_to_buy                 ; Broadcast messages telling fellow track members I just overloaded.
   overloaded.do_not_buy                  ; Private message telling fellow track member I still have capacity.
   overloaded.we_collided                 ; Private message telling fellow track member I also want to buy.
-  overloaded.come_to_my_district         ; Private message telling newly bought bus which track to go.
+  overloaded.come_to_district            ; Private message telling newly bought bus which track to go.
   overloaded.we_both_bought              ; Broadcast message to identify simultaneous buyers
   
   overloaded/busy_threshold              ; A constant; threshold value determining when the return value of "how-busy", should indicate a bus is busy.
@@ -102,4 +104,3 @@ to-report determine-desire?
     [report "routine"]
     [report "idle"]
 end
-
