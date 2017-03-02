@@ -49,9 +49,9 @@ to lead-overloaded
     
     ifelse bus_id < overloaded/oldest_requester [
       set overloaded/state overloaded:ABOUT_TO_BUY
-      if debug_messages [ debug (word "I, bus " bus_id " am the oldest bus during collision, I will try to buy the bus next tick.")] ]
+      if debug_messages [ debug (word "I am the oldest bus. Will try to buy next tick.")] ]
     [ 
-      if debug_messages [ debug (word "I, bus " bus_id " am not the oldest bus during collision, I stop the protocol.")]
+      if debug_messages [ debug (word "I am not the oldest bus. Quitting protocol.")]
       end-overloaded ]
     stop]
   
@@ -87,7 +87,7 @@ to lead-overloaded
        end-overloaded]
      
      ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
-     [ if debug_messages [ debug (word "No one on district " district " answered my call. No other districts have enough capacity.")]
+     [ if debug_messages [ debug (word "No answers from my district. No other districts have enough capacity.")]
      buy]
 
      stop]
@@ -152,7 +152,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; A fellow district member also wants to buy. Collision!
     ; We keep track of the oldest bus, which is the one responsible for buying a bus
     
-    if debug_messages [ debug (word "I, bus: " bus_id ", collided with other bus:" sender ", during buying process, we will resolve this conflict.")] 
+    if debug_messages [ debug (word "I collided with bus " sender " during buying. We will resolve this conflict.")] 
     
     if sender < overloaded/oldest_requester [ set overloaded/oldest_requester sender ]
     set overloaded/state overloaded:COLLIDED
@@ -162,11 +162,11 @@ to follow-overloaded [sender body details] ; This function is called after incom
 
     ; A fellow district member still has capacity, so I don't have to buy.
     ifelse details = district [
-      if debug_messages [ debug (word "Bus " sender " told me not to buy a bus for district " district ", his district is: " details ".")] 
+      if debug_messages [ debug (word "Bus " sender " from D" details " told me not to buy a bus.)] 
       end-overloaded]
     ; else: Someone from another district wants to help out
     [ 
-      if debug_messages [ debug (word "Bus " sender " told me he might be available to help out, his district is: " details ".")] 
+      if debug_messages [ debug (word "Bus " sender " from D" details " said he might be available to help.")] 
       let other_district_blockers table:get overloaded/other_district_blockers details
       set other_district_blockers lput sender other_district_blockers
       table:put overloaded/other_district_blockers details other_district_blockers]
@@ -181,7 +181,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set-track 3 item district districts
     set next_stop -1;item track_index track 
     set desire "routine"
-    if debug_messages [ debug (word "I have been instructed to drive in district " district ".")]
+    if debug_messages [ debug (word "I have been assigned to D" district ".")]
     set overloaded/state overloaded:UNINITIATED
     stop]
 
@@ -190,7 +190,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; I detect the others which also simultaneously bought a bus and store their bus IDs
     ; This tick, I will decide which of us will buy the bus
     
-    if debug_messages [ debug (word "I, bus: " bus_id ", bought a bus at the same time as:" sender ", we will resolve this conflict.")] 
+    if debug_messages [ debug (word "I bought at the same time as " sender ". We will resolve this conflict.")] 
     
     if sender < overloaded/oldest_buyer [ set overloaded/oldest_buyer sender ]
     set overloaded/other_buyers lput details overloaded/other_buyers
@@ -204,14 +204,14 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    if debug_messages [ debug (word "I bought a bus for district " district ".")]]
+    if debug_messages [ debug (word "I bought a bus.")]]
   [
-    if debug_messages [ debug (word "I was about to buy a bus for district " district ", but had capacity again.")]
+    if debug_messages [ debug (word "I was about to buy, but had capacity again.")]
     end-overloaded]
 end
 
 to end-overloaded
-  if debug_messages [ debug (word "I am ending the protocol, my new state will be unitiated, my old state was: " overloaded/state ".")]
+  if debug_messages [ debug (word "I am ending the protocol from state " overloaded/state ".")]
   set overloaded/timer overloaded/timeout
   set overloaded/state overloaded:UNINITIATED
   clear-temporary-memory

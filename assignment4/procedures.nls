@@ -53,6 +53,10 @@ to-report at-stop? ; Returns whether I'm at a stop.
   report current_stop != -1
 end
 
+to-report assigned-to-district? ; Returns whether I'm currently assigned to a district.
+  report district != -1
+end
+
 to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
   report member? destination item district districts
 end
@@ -91,10 +95,17 @@ to set-junctions
 end
 
 to debug [text]
-  ifelse debug_ticks[
-    show (word "[" ticks "] " text)]
-  [
-    show text]
+  let preamble ""
+  
+  if debug_show_ticks [ set preamble (word preamble "[" ticks "]")]
+  
+  if debug_show_districts [
+    ifelse assigned-to-district? [ 
+      set preamble (word preamble "[D" district "]")]
+    [
+      set preamble (word preamble "[--]")]]
+  
+  show (word preamble " " text)
 end
 
 to reset-overloaded/other_district_blockers

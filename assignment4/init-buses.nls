@@ -18,7 +18,8 @@ to init-buses
   set debug_traffic false
   set debug_messages true
   set debug_purchases true
-  set debug_ticks true
+  set debug_show_ticks true
+  set debug_show_districts true
   
   ; _________
   ; PROTOCOLS
