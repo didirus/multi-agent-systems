@@ -106,3 +106,15 @@ to reset-overloaded/other_district_blockers
     ]
   ] 
 end
+
+to handle-timers
+  
+  ; handle buy timer
+  if overloaded/timer > 0 [
+    ; Decrease waiting time to buy new buses.
+    set overloaded/timer overloaded/timer - 1]
+  
+  ; handle reallocation timer
+  if overloaded/reallocation_timer > 0 [
+    set overloaded/reallocation_timer (overloaded/reallocation_timer - 1)]
+end

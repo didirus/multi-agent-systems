@@ -58,9 +58,13 @@ buses-own [
   overloaded.come_to_my_district         ; Private message telling newly bought bus which track to go.
   overloaded.we_both_bought              ; Broadcast message to identify simultaneous buyers
   
+  overloaded/busy_threshold              ; A constant; threshold value determining when the return value of "how-busy", should indicate a bus is busy.
+  overloaded/quiet_district_threshold    ; A constant; defines the number of non-busy buses in a quiet district.
   overloaded/state                       ; Keeps track of the protocol state.
   overloaded/timeout                     ; A constant; determines how long to wait after buying bus.
   overloaded/timer                       ; To make sure I don't buy a new bus right after I did.
+  overloaded/reallocation_timeout        ; A constant; determines how long to wait after reallocating.
+  overloaded/reallocation_timer          ; To make sure I don't reallocate immidiatly after I started realocating.
   overloaded/oldest_requester            ; Temporarily store ID of olderst requester
   overloaded/other_buyers                ; Temporary store districts of simultaneous buyers.
   overloaded/oldest_buyer                ; Temporarily store ID of olders buyer.

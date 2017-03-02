@@ -37,6 +37,8 @@ end
 
 to-report tick-of [message] report item 0 message end
 to-report sender-of [message] report item 1 message end
+to-report district-of [details] report item 0 details end
+to-report busyness-of [details] report item 1 details end
 to-report protocol-of [message] report table:get item 2 message "protocol" end
 to-report body-of [message] report table:get item 2 message "body" end
 to-report details-of [message] report table:get item 2 message "details" end

@@ -38,7 +38,12 @@ to init-buses
   set overloaded.we_both_bought "we both bought"
   
   set overloaded/state overloaded:UNINITIATED
+  set overloaded/busy_threshold 1
+  set overloaded/quiet_district_threshold 2
   set overloaded/timeout 50
+  set overloaded/timer 0
+  set overloaded/reallocation_timeout 30
+  set overloaded/reallocation_timer 0       ; Is not actually implemented yet
   set overloaded/timer 0
   set overloaded/oldest_buyer 9999
   set overloaded/other_buyers []
