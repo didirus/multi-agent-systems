@@ -205,7 +205,6 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
-    mark
     if debug_messages [ debug (word "I bought a bus.")]]
   [
     if debug_messages [ debug (word "I was about to buy, but had capacity again.")]
