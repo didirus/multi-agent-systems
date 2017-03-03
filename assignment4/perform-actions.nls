@@ -3,11 +3,9 @@
 ; code is self-explanatory.
 
 to perform-actions
-  if at-stop? [
-    if intention = "drop_off" [drop-off-passengers]
-    if intention = "pick_up" [pick-up-passengers]]
-  
-  if intention = "drive"[
+  if intention = i>DROP_OFF [drop-off-passengers]
+  if intention = i>PICK_UP [pick-up-passengers]
+  if intention = i>DRIVE [
     if next_stop = -1 [set next_stop next-stop?]
     travel-to next_stop]
 end

@@ -57,6 +57,10 @@ to-report assigned-to-district? ; Returns whether I'm currently assigned to a di
   report district != -1
 end
 
+to-report home? ; Returns whether I'm currently in my assigned district.
+  report true
+end
+
 to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
   report member? destination item district districts
 end
@@ -68,30 +72,41 @@ end
 to-report any [collection predicate] ; Returns whether `predicate` is true for each element of `collection`.
   report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
 end
-
-to-report in-district?
-  report member? current_stop item district districts
+  
+to-report index-in-range [ number ]
+  let range []
+  let i 0
+  while [i < number] [
+     set range lput i range
+     set i i + 1]
+  report range
 end
 
-to set-junctions
+to-report enumerate [ collection ]
+  report index-in-range length collection
+end
+
+to-report in-district?
+  report member? current_stop stops?
+end
+
+to-report stops?
+   report item district districts
+end
+
+to-report stops-of [ some-district ]
+  report item some-district districts
+end
+
+to-report determine-junctions? ; Returns table mapping pair of districts to their overlapping stops
+  let junction_table table:make
+  foreach enumerate districts [ let district_a ?
+    foreach enumerate districts [ let district_b ?
+      if district_a != district_b [
+        table:put junction_table (list district_a district_b)
+         reduce intersect (list stops-of district_a stops-of district_b) ]]]
   
-  ; create hash table
-  let juncts table:make 
-  
-  ; for all district combinations
-  foreach districts [                                        ; district 1 = i
-    let i ?
-    let index_i position i districts 
-    foreach districts [                                      ; district 2 = j
-      let j ?
-      let index_j position j districts
-      
-      ; store intersection of the to district lists 
-      if index_i != index_j [
-        table:put juncts (list index_i index_j) reduce intersect (list i j) ]]]
-  
-  ; store hash table in property
-  set junctions juncts
+  report junction_table
 end
 
 to debug [text]

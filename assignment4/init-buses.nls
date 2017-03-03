@@ -11,7 +11,7 @@ to init-buses
     [ 6 8 2 8 9 20 21 10 5 4 3 9 8 ]
   ]
   
-  set-junctions 
+  set junctions determine-junctions?
   set dijkstra read-dijkstra?
   
   ; _______
@@ -21,6 +21,18 @@ to init-buses
   set debug_purchases true
   set debug_show_ticks true
   set debug_show_districts true
+  
+  ; _______
+  ; DESIRES
+  set d>GOING_HOME "going-home"
+  set d>BEING_IDLE "being-idle"
+  set d>FOLLOWING_ROUTINE "following-routine"
+  
+  ; __________
+  ; INTENTIONS
+  set i>DROP_OFF "drop_off"
+  set i>PICK_UP "pick_up"
+  set i>DRIVE "drive"
   
   ; _________
   ; PROTOCOLS

@@ -4,25 +4,25 @@
 
 to update-intentions run (word "pursue-" desire) end
 
-; _______________
-; DESIRE: ROUTINE
+; _________________________
+; DESIRE: FOLLOWING ROUTINE
 
-to pursue-routine
+to pursue-following-routine
   ; If between stops, simply intent to continue to drive.
-  if not at-stop? [set intention "drive" stop]
+  if not at-stop? [set intention i>DRIVE stop]
   
   ; If in district set intentions for drop off and pick up
   if in-district?[
     
     ; If at stop, and any passenger wants to leave, intent to drop them off.
-    if any bus_passengers (task wants-to-leave) [set intention "drop_off" stop]
+    if any bus_passengers (task wants-to-leave) [set intention i>DROP_OFF stop]
     
     ; If at stop, and no passenger wants to leave, but any passenger wants to enter, intent to pick them up.
-    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention "pick_up" stop]
+    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention i>PICK_UP stop]
   ]
   
   ; If at stop, but no one wants to either enter or leave, intent to continue to drive.
-  set intention "drive"
+  set intention i>DRIVE
 end
 
 to-report wants-to-leave [passenger]
@@ -36,7 +36,7 @@ to-report wants-to-enter [passenger]
   ; Determines if `passenger` wants to enter. This is the case
   ; if his destination is in the district I'm driving.
   
-  report not at-junction? or fastest-option? destination-of passenger ;in-my-district destination-of passenger
+  report not at-junction? or fastest-option? destination-of passenger
 end
 
 to-report fastest-option? [destination]
@@ -71,9 +71,9 @@ end
 to-report destination-of [passenger] report item 1 passenger end
 to-report id-of [passenger] report item 0 passenger end
 
-; ____________
-; DESIRE: IDLE
+; __________________
+; DESIRE: BEING IDLE
 
-to pursue-idle ; If the desire is `idle`, intent to stop.
+to pursue-being-idle ; If the desire is `desire>being_idle`, intent to stop.
   set intention "stop"
 end

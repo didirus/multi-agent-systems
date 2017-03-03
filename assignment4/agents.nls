@@ -39,6 +39,16 @@ buses-own [
   track_index     ; Pointer to keep track of where on the track this bus is currently at.
   in_district     ; Boolean initialised to 'false', 'true' when bus reached its district for the first time
   
+  ; DESIRES
+  d>GOING_HOME
+  d>BEING_IDLE
+  d>FOLLOWING_ROUTINE
+  
+  ; INTENTIONS
+  i>DROP_OFF
+  i>PICK_UP
+  i>DRIVE
+  
   ; Beneath are protocol states and messages and
   ; protocol-specific variables the bus is keeping
   ; track of. Names with : are protocol states,
@@ -96,11 +106,17 @@ to execute-actions
 
 end
 
-to-report determine-desire?
-  ; If there are passengers, and I already know my track, drive
-  ; around track (intention 'routine'). Else, do nothing (intention 'idle').
+to-report determine-desire? ; Returns the desire given the situation.
   
-  ifelse waiting-passengers? and not (overloaded/state = overloaded:WAKING_UP)
-    [report "routine"]
-    [report "idle"]
+  if assigned-to-district? and home? and waiting-passengers? [
+     report d>FOLLOWING_ROUTINE ]
+  
+  if assigned-to-district? and home? and not waiting-passengers? [
+    report d>BEING_IDLE ]
+  
+  if assigned-to-district? and not home? [
+    report d>GOING_HOME ]
+  
+  if not assigned-to-district? [
+     report d>BEING_IDLE ]
 end
