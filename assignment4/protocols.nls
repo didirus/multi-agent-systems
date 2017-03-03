@@ -131,11 +131,11 @@ end
 
 to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
   
-  if body = overloaded.want_to_buy and overloaded/state = overloaded:UNINITIATED [
+  if body = overloaded.want_to_buy and overloaded/state = overloaded:UNINITIATED and district != false [
     
     ; Somebody wants to buy, but I still
     ; have capacity. So I report my district and busyness level
-    
+
     if not busy? [send sender "overloaded" overloaded.do_not_buy (list district how-busy?)]
     stop]
   
@@ -151,17 +151,15 @@ to follow-overloaded [sender body details] ; This function is called after incom
     stop]
   
   if body = overloaded.do_not_buy [
-
-    ; A fellow district member still has capacity, so I don't have to buy.
     ifelse district-of details = district [
-
+      
+      ; A fellow district member still has capacity, so I don't have to buy.
+      
       if debug_messages [ debug (word "Bus " sender " from D" district-of details " told me not to buy a bus.")] 
-
       end-overloaded]
-    
-    ; else: Someone from another district wants to help out
     [ 
-      ; nothing fancy, just more readable for now
+      ; else: Someone from another district wants to help out
+      
       let his_district    district-of details
       let his_busyness    busyness-of details
       let his_id          sender 
@@ -171,22 +169,15 @@ to follow-overloaded [sender body details] ; This function is called after incom
       let other_district_blockers table:get overloaded/other_district_blockers his_district  ; store in variable: list of current available buses present in his_district
       set other_district_blockers lput (list his_id his_busyness) other_district_blockers    ; store in tuple [his_id his_busyness], append to the list
       table:put overloaded/other_district_blockers his_district other_district_blockers]     ; put the updated list back in the hashtable
- 
+    
     stop]
   
   if body = overloaded.come_to_district [
     
     ; I have just been bought, and this message contains the district I should be driving.
     
-    if debug_messages [ debug (word "I have been assigned to D" details ".")]
-    set district details
-    let source current_stop
-    if source = -1 
-    [ set source next_stop ]
-    set-track source item district districts
-    set next_stop -1
-    set desire "routine"
-    set overloaded/state overloaded:UNINITIATED
+    get-assigned-to details
+    end-overloaded
     stop]
 
   if body = overloaded.we_both_bought and overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
@@ -266,6 +257,7 @@ to buy
     add-bus 2
     set overloaded/newest_bus newest-bus?
     set overloaded/state overloaded:INSTRUCTING
+
     if debug_messages [ debug (word "I bought a bus.")]]
   [
     if debug_messages [ debug (word "I was about to buy, but had capacity again.")]

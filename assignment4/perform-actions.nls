@@ -5,9 +5,7 @@
 to perform-actions
   if intention = i>DROP_OFF [drop-off-passengers]
   if intention = i>PICK_UP [pick-up-passengers]
-  if intention = i>DRIVE [
-    if next_stop = -1 [set next_stop next-stop?]
-    travel-to next_stop]
+  if intention = i>DRIVE [travel-to next-stop?]
 end
 
 to drop-off-passengers
@@ -29,51 +27,40 @@ to pick-up [passenger] pick-up-passenger id-of passenger end
 to drop-off [passenger] drop-off-passenger id-of passenger end
 
 to-report next-stop?
-  set track_index (track_index + 1) mod (length track)
-  report item track_index track
+  ifelse in-transit? [
+    report next_stop]
+  [
+    ifelse home? 
+      [report next-stop-in-district?]
+      [report next-stop-to-district?]]
+end
+
+to-report next-stop-in-district?
+  ifelse just-came-home? [
+    report successor-of location? stops-of district]
+  [
+    let previous_element first stops-of district
+    foreach enumerate stops-of district [ let current_index (? + 1) mod length stops-of district
+      let current_element item current_index stops-of district
+      if previous_element = previous_stop and current_element = location? [
+        report item ((current_index + 1) mod length stops-of district) stops-of district]
+      set previous_element current_element ]]
+end
+
+to-report next-stop-to-district?
+  let closest_district_stop false
+  let lowest_cost 999999
+  
+  foreach stops-of district [ let district_stop ?
+    let cost item 1 table:get dijkstra (list location? district_stop)
+    if cost < lowest_cost [
+      set lowest_cost cost
+      set closest_district_stop district_stop]]
+  
+  debug (word "Doing Dijkstra: not at " location? ", going to " closest_district_stop " via " (first first table:get dijkstra (list location? closest_district_stop)))
+  report first first table:get dijkstra (list location? closest_district_stop)
 end
 
 to mention [message passenger]
   show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
-end
-
-to set-track [source target]
-  ; Called when initialising a bus
-  ; Checks whether the bus is already in its district
-  ; If in district: set to default district route
-  ; Else, find shortest path to district
-  
-  ; property used to track available buses in other districts when buying.
-  ; based on it's own district, therefore better to set it here then
-  ; in init-buses
-  if debug_traffic [ debug (word "I am setting my track, therefore also resetting my overloaded/other_district_blockers information.")] 
-  reset-overloaded/other_district_blockers
-  
-  ifelse member? source target
-  
-  [ update-track
-    set in_district true] 
-  [
-    ; Determine the shortest path to the district
-    ; by evaluating every busstop in the district 
-    ; with Dijkstra's algorithm
-    
-    let shortest_stop 99 
-    let min_cost 10000000
-    foreach target [
-      let busstop ?
-      let output table:get dijkstra (list source busstop)
-      let cost item 1 output
-      if cost < min_cost [
-        set shortest_stop busstop
-        set min_cost cost]]
-    let route first table:get dijkstra (list source shortest_stop)
-    set track route ]
-end
-
-to update-track
-  if district != -1 [
-    if track = 0 or current_stop = last track [  
-      set track item district districts ; pick default district route      
-      if not in_district [set track_index position current_stop track ]]]
 end

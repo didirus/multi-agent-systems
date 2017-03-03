@@ -28,19 +28,15 @@ buses-own [
   junctions       ; List of junction between tracks.
   dijkstra        ; Table of dijkstra algorithm results
   marker          ; Marker symbol for easy debugging.
+  central_station ; The index of the station where all buses start.
   
   ; VARIABLES
   desire          ; The current desire of this bus.
   intention       ; The current intention of this bus that has the highest priority.
   buses_bought    ; For the first bus, to count how many buses he has already bought.
-  
   district        ; The index of the track this bus is currently driving.
-  track           ; Temporary goal route
-  track_index     ; Pointer to keep track of where on the track this bus is currently at.
-  in_district     ; Boolean initialised to 'false', 'true' when bus reached its district for the first time
   
   ; DESIRES
-  d>GOING_HOME
   d>BEING_IDLE
   d>FOLLOWING_ROUTINE
   
@@ -59,7 +55,6 @@ buses-own [
   overloaded:ABOUT_TO_BUY                ; Start of protocol; just got overloaded.
   overloaded:INSTRUCTING                 ; Bought a new bus; need to instruct him where to go.
   overloaded:COLLIDED                    ; Other bus on my track also just overloaded.
-  overloaded:WAKING_UP                   ; I have just been bought; need to receive instructions.
   overloaded:BOUGHT_SIMULTANEOUSLY       ; I detected a simultaneous buy; need to decide who will instruct new buses.
   overloaded:RESOLVING_SIMULTANEOUS_BUY  ; Resolving simulaneously buying procedure. 
   overloaded:AWAITING_RESPONSE           ; I want to buy, awaiting response
@@ -94,28 +89,23 @@ to execute-actions
   
   set desire determine-desire?
   update-intentions
-  update-track
   perform-actions
   check-inbox
   lead-protocols
   
   if (bus_id = 24) and (buses_bought < (length districts - 1)) [
-    ; I'm the first bus, and there are still tracks without bus! Buy new one.
-      add-bus 1
-      set buses_bought buses_bought + 1 ]
-
+    ;I'm the first bus, and there are still tracks without bus! Buy new one.
+    add-bus 1
+    set buses_bought buses_bought + 1 ]
 end
 
 to-report determine-desire? ; Returns the desire given the situation.
   
-  if assigned-to-district? and home? and waiting-passengers? [
+  if assigned-to-district? and waiting-passengers? [
      report d>FOLLOWING_ROUTINE ]
   
-  if assigned-to-district? and home? and not waiting-passengers? [
+  if assigned-to-district? and not waiting-passengers? [
     report d>BEING_IDLE ]
-  
-  if assigned-to-district? and not home? [
-    report d>GOING_HOME ]
   
   if not assigned-to-district? [
      report d>BEING_IDLE ]

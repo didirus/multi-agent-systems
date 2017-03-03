@@ -9,17 +9,16 @@ to update-intentions run (word "pursue-" desire) end
 
 to pursue-following-routine
   ; If between stops, simply intent to continue to drive.
-  if not at-stop? [set intention i>DRIVE stop]
+  if in-transit? [set intention i>DRIVE stop]
   
   ; If in district set intentions for drop off and pick up
-  if in-district?[
+  if home? [
     
     ; If at stop, and any passenger wants to leave, intent to drop them off.
     if any bus_passengers (task wants-to-leave) [set intention i>DROP_OFF stop]
     
     ; If at stop, and no passenger wants to leave, but any passenger wants to enter, intent to pick them up.
-    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention i>PICK_UP stop]
-  ]
+    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [set intention i>PICK_UP stop] ]
   
   ; If at stop, but no one wants to either enter or leave, intent to continue to drive.
   set intention i>DRIVE
@@ -48,7 +47,7 @@ to-report fastest-option? [destination]
   ; My reach: check how far in the passengers shortest path I reach
   foreach route [
     let busstop ?
-    if member? busstop item district districts or member? busstop track [
+    if member? busstop stops-of district [
       if position busstop route > my_reach [
         set my_reach position busstop route ]]]
   

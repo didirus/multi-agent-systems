@@ -16,6 +16,10 @@ end
 to-report newest-bus? ; Returns the ID of the newest bus.
   report max fput bus_id all-buses?
 end
+
+to-report oldest-bus? ; Returns the ID of the oldest bus.
+  report min fput bus_id all-buses?
+end
  
 to-report waiting-passengers? ; Returns whether there are waiting passengers.
   report any? bus_stops with [length passengers_waiting > 0]
@@ -49,16 +53,18 @@ to-report at-junction? ; Returns whether I'm currently at a junction.
   report boolean
 end
 
-to-report at-stop? ; Returns whether I'm at a stop. 
-  report current_stop != -1
+to-report in-transit?
+  report not (next_stop = -1 or next_stop = false)
 end
 
 to-report assigned-to-district? ; Returns whether I'm currently assigned to a district.
-  report district != -1
+  report district != false
 end
 
-to-report home? ; Returns whether I'm currently in my assigned district.
-  report true
+to get-assigned-to [ new_district ]
+  if debug_messages [ debug (word "I have been assigned to D" new_district ".")]
+  set district new_district
+  reset-overloaded/other_district_blockers
 end
 
 to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
@@ -71,6 +77,11 @@ end
 
 to-report any [collection predicate] ; Returns whether `predicate` is true for each element of `collection`.
   report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
+end
+
+to-report successor-of [element collection] ; Returns the successor of `element` in `collection`.
+  assert (word "`successor-of` called, but `" element "` is not an element of `" collection "`.") member? element collection
+  report item ((position element collection + 1) mod length collection) collection
 end
   
 to-report index-in-range [ number ]
@@ -86,16 +97,27 @@ to-report enumerate [ collection ]
   report index-in-range length collection
 end
 
-to-report in-district?
-  report member? current_stop stops?
+to-report home?
+  report member? location? stops-of district
 end
 
-to-report stops?
-   report item district districts
+to-report just-came-home?
+  debug (word previous_stop " so " (previous_stop = -1
+   or not member? previous_stop stops-of district
+   or not (successor-of previous_stop stops-of district = location?)))
+  
+  report previous_stop = -1
+   or not member? previous_stop stops-of district
+   or not (successor-of previous_stop stops-of district = location?)
 end
 
 to-report stops-of [ some-district ]
   report item some-district districts
+end
+
+to-report location?
+  if in-transit? [ warn "Procedure `location?` used while in transit (not at bus stop)." ]
+  report current_stop
 end
 
 to-report determine-junctions? ; Returns table mapping pair of districts to their overlapping stops
@@ -123,6 +145,14 @@ to debug [text]
   show (word preamble " " text)
 end
 
+to warn [text]
+  mark
+  debug (word "WARNING! " text)
+  mark
+end
+
+to assert [ text predicate ] if not predicate [ warn text ] end
+  
 to reset-overloaded/other_district_blockers
   set overloaded/other_district_blockers table:make
   foreach districts [

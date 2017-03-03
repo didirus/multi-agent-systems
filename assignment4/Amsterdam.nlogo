@@ -577,7 +577,7 @@ to travel-to [bs_id]
   ask buses [
     if self = myself [
       set next_stop bs_id
-      set label (word "Bus: " bus_id " I: " track_index " N: " next_stop)
+      set label (word "Bus: " bus_id " P: " length bus_passengers " N: " next_stop)
       set label-color blue
     ]
   ]
