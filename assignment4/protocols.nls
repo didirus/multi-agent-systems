@@ -155,7 +155,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; A fellow district member still has capacity, so I don't have to buy.
     ifelse district-of details = district [
 
-      if debug_messages [ debug (word "Bus " sender " from D" details " told me not to buy a bus.")] 
+      if debug_messages [ debug (word "Bus " sender " from D" district-of details " told me not to buy a bus.")] 
 
       end-overloaded]
     
@@ -166,7 +166,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
       let his_busyness    busyness-of details
       let his_id          sender 
       
-      if debug_messages [ debug (word "Bus " sender " from D" details " said he might be available to help.")]  
+      if debug_messages [ debug (word "Bus " sender " from D" district-of details " said he might be available to help.")]  
       
       let other_district_blockers table:get overloaded/other_district_blockers his_district  ; store in variable: list of current available buses present in his_district
       set other_district_blockers lput (list his_id his_busyness) other_district_blockers    ; store in tuple [his_id his_busyness], append to the list
