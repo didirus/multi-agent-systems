@@ -101,16 +101,6 @@ to-report home?
   report member? location? stops-of district
 end
 
-to-report just-came-home?
-  debug (word previous_stop " so " (previous_stop = -1
-   or not member? previous_stop stops-of district
-   or not (successor-of previous_stop stops-of district = location?)))
-  
-  report previous_stop = -1
-   or not member? previous_stop stops-of district
-   or not (successor-of previous_stop stops-of district = location?)
-end
-
 to-report stops-of [ some-district ]
   report item some-district districts
 end

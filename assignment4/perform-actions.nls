@@ -27,24 +27,38 @@ to pick-up [passenger] pick-up-passenger id-of passenger end
 to drop-off [passenger] drop-off-passenger id-of passenger end
 
 to-report next-stop?
-  ifelse in-transit? [
-    report next_stop]
-  [
-    ifelse home? 
-      [report next-stop-in-district?]
-      [report next-stop-to-district?]]
+  ; I'm driving between two stops, so just continue.
+  if in-transit? [ report next_stop ]
+  
+  ; I'm at a stop, need to determine next. I'm in home district. What's next stop on default district track?
+  if not in-transit? and home? [ report next-stop-in-district? ]
+  
+  ; I'm not in home district. What's the next stop on the shortest route to my home district?
+  if not in-transit? and not home? [ report next-stop-to-district? ]
 end
 
 to-report next-stop-in-district?
-  ifelse just-came-home? [
-    report successor-of location? stops-of district]
-  [
-    let previous_element first stops-of district
-    foreach enumerate stops-of district [ let current_index (? + 1) mod length stops-of district
-      let current_element item current_index stops-of district
-      if previous_element = previous_stop and current_element = location? [
-        report item ((current_index + 1) mod length stops-of district) stops-of district]
-      set previous_element current_element ]]
+  ; Returns the next stop on the default district track. In case I'm just entering the district,
+  ; it's simply an arbitrary successor on that track of my current stop. If I've been driving
+  ; here for some time already, need to take into account previous stop as well, because stops
+  ; can occur multiple times in each track.
+  
+  ; First, naively determine an arbitrary successor.
+  
+  let next_stop_in_district successor-of location? stops-of district
+  
+  ; Then, loop through the default track, taking my previous stop into account, to see if I was already
+  ; somewhere along the track.
+  
+  let previous_element first stops-of district
+  
+  foreach enumerate stops-of district [ let current_index (? + 1) mod length stops-of district
+    let current_element item current_index stops-of district
+    if previous_element = previous_stop and current_element = location? [
+      set next_stop_in_district item ((current_index + 1) mod length stops-of district) stops-of district ]
+    set previous_element current_element ]
+  
+  report next_stop_in_district
 end
 
 to-report next-stop-to-district?
