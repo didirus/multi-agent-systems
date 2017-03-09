@@ -20,7 +20,7 @@ end
 to broadcast [protocol body details]
   ; Sends message of `protocol` containing `body` and `details` to all other buses.
   
-  foreach all-buses? [ let recipient ?
+  foreach discovery/colleagues [ let recipient ?
     send-message recipient draft-message protocol body details]
   if debug_messages [debug (word "I sent: " to-string-outgoing "broad" protocol body details)]
 end

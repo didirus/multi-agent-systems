@@ -1,15 +1,18 @@
 ; This file contains all kinds of auxiliary procedures.
 
-; Returns list with the IDs of all buses, except my own.
-to-report all-buses? report socialnetwork/collegues  end
-
-
 to-report newest-bus? ; Returns the ID of the newest bus.
-  report max fput bus_id all-buses?
+  report max fput bus_id discovery/colleagues ; ID of every colleague + my own ID
 end
 
-to-report oldest-bus? ; Returns the ID of the oldest bus.
-  report min fput bus_id all-buses?
+to-report only-bus? ; Returns whether I'm the only bus. Implies I'm the first bus.
+  report length discovery/colleagues = 0
+end
+
+to-report one-of-the-first-buses?
+  ; Returns whether I'm one of the initial buses. The amount of initial
+  ; buses is the amount of districts. In other words: when all initial
+  ; buses have been created, each district has one bus.
+  report bus_id - discovery/oldest_bus < length districts
 end
  
 to-report waiting-passengers? ; Returns whether there are waiting passengers.
@@ -24,6 +27,19 @@ to-report capacity? ; Returns my capacity according to my bus type.
   if bus_type = 1 [report bus_type1_capacity]
   if bus_type = 2 [report bus_type2_capacity]
   if bus_type = 3 [report bus_type3_capacity]
+end
+
+to-report home? ; Returns whether I'm currently in my district.
+  report member? location? stops-of district
+end
+
+to-report stops-of [ some-district ]
+  report item some-district districts
+end
+
+to-report location?
+  if in-transit? [ warn "Procedure `location?` used while in transit (not at bus stop)." ]
+  report current_stop
 end
 
 to-report at-junction? ; Returns whether I'm currently at a junction.
@@ -74,37 +90,22 @@ to-report successor-of [element collection] ; Returns the successor of `element`
   assert (word "`successor-of` called, but `" element "` is not an element of `" collection "`.") member? element collection
   report item ((position element collection + 1) mod length collection) collection
 end
-  
-to-report index-in-range [ number ]
-  let range []
-  let i 0
-  while [i < number] [
-     set range lput i range
-     set i i + 1]
-  report range
+
+to-report range [ from until ]
+  let the_range []
+  let i from
+  while [i < until] [
+    set the_range lput i the_range
+    set i i + 1]
+  report the_range
+end
+
+to-report range-until [ until ]
+  report range 0 until
 end
 
 to-report enumerate [ collection ]
-  report index-in-range length collection
-end
-
-to-report home?
-  report member? location? stops-of district
-end
-
-to-report just-came-home?
-  report previous_stop = -1
-   or not member? previous_stop stops-of district
-   or not (successor-of previous_stop stops-of district = location?)
-end
-
-to-report stops-of [ some-district ]
-  report item some-district districts
-end
-
-to-report location?
-  if in-transit? [ warn "Procedure `location?` used while in transit (not at bus stop)." ]
-  report current_stop
+  report range-until length collection
 end
 
 to-report determine-junctions? ; Returns table mapping pair of districts to their overlapping stops
@@ -116,6 +117,25 @@ to-report determine-junctions? ; Returns table mapping pair of districts to thei
          reduce intersect (list stops-of district_a stops-of district_b) ]]]
   
   report junction_table
+end
+  
+to reset-overloaded/other_district_blockers
+  set overloaded/other_district_blockers table:make
+  foreach districts [
+    let i position ? districts
+    if i != district [
+      table:put overloaded/other_district_blockers i [] ]] 
+end
+
+to handle-timers
+  ; handle buy timer
+  if overloaded/timer > 0 [
+    ; Decrease waiting time to buy new buses.
+    set overloaded/timer overloaded/timer - 1]
+  
+  ; handle reallocation timer
+  if overloaded/reallocation_timer > 0 [
+    set overloaded/reallocation_timer (overloaded/reallocation_timer - 1)]
 end
 
 to debug [text]
@@ -139,33 +159,6 @@ to warn [text]
 end
 
 to assert [ text predicate ] if not predicate [ warn text ] end
-  
-to reset-overloaded/other_district_blockers
-  set overloaded/other_district_blockers table:make
-  foreach districts [
-    let i position ? districts
-    if i != district [
-      table:put overloaded/other_district_blockers i []
-    ]
-  ] 
-end
 
-to handle-timers
-  
-  ; handle buy timer
-  if overloaded/timer > 0 [
-    ; Decrease waiting time to buy new buses.
-    set overloaded/timer overloaded/timer - 1]
-  
-  ; handle reallocation timer
-  if overloaded/reallocation_timer > 0 [
-    set overloaded/reallocation_timer (overloaded/reallocation_timer - 1)]
-end
-
-to mark
-  print marker
-end
-
-to mark-personal
-  debug marker
-end
+to mark print marker end
+to mark-personal debug marker end

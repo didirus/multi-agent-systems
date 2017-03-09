@@ -61,20 +61,31 @@ to init-buses
   set overloaded/oldest_buyer 9999
   set overloaded/other_buyers []
   set overloaded/oldest_requester 9999
- 
-  set socialnetwork:JUST_BEEN_BOUGHT "just_been_bought"
-  set socialnetwork:FULLY_INFORMED "I'm_fully_informed"
   
-  set socialnetwork.this_is_my_id "this_is_my_id"
- 
-  set socialnetwork/state socialnetwork:JUST_BEEN_BOUGHT
-  set socialnetwork/collegues []
-  set socialnetwork/start_index 24
+  set discovery.this_is_my_id "this_is_my_id"
+  
+  set discovery/oldest_bus 24
+  set discovery/colleagues range discovery/oldest_bus bus_id
   
   ; _________
   ; VARIABLES
   set district false
   
-  if debug_messages or debug_purchases [ debug "I am created." ]
+  initialize
+end
 
+to initialize
+  if debug_messages or debug_purchases [ debug "I am created." ]
+  
+  declare-existence
+  
+  if one-of-the-first-buses? [ pick-empty-district ]
+end
+
+to declare-existence
+  broadcast "discovery" discovery.this_is_my_id false
+end
+
+to pick-empty-district
+  get-assigned-to bus_id mod length districts
 end

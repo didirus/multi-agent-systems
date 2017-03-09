@@ -71,7 +71,6 @@ to-report next-stop-to-district?
       set lowest_cost cost
       set closest_district_stop district_stop]]
   
-  debug (word "Doing Dijkstra: not at " location? ", going to " closest_district_stop " via " (first first table:get dijkstra (list location? closest_district_stop)))
   report first first table:get dijkstra (list location? closest_district_stop)
 end
 

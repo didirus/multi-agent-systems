@@ -77,14 +77,10 @@ buses-own [
   overloaded/newest_bus                  ; The id of the newest bus right before I bought one.
   overloaded/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out
   
-  socialnetwork:JUST_BEEN_BOUGHT
-  socialnetwork:FULLY_INFORMED
+  discovery.this_is_my_id
   
-  socialnetwork.this_is_my_id
-  
-  socialnetwork/state 
-  socialnetwork/collegues
-  socialnetwork/start_index
+  discovery/colleagues
+  discovery/oldest_bus
   
 ]
 
@@ -101,7 +97,8 @@ to execute-actions
   perform-actions
   check-inbox
   lead-protocols
-
+  
+  if only-bus? [ buy-first-buses ]
 end
 
 to-report determine-desire? ; Returns the desire given the situation.
@@ -114,4 +111,8 @@ to-report determine-desire? ; Returns the desire given the situation.
   
   if not assigned-to-district? [
      report d>BEING_IDLE ]
+end
+
+to buy-first-buses
+  foreach range-until (length districts - 1) [ add-bus 1 ]
 end
