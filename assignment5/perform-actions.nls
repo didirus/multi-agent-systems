@@ -1,0 +1,79 @@
+; This file handles all actions, after desire and intention
+; has been determined. Contains no further comments as the
+; code is self-explanatory.
+
+to perform-actions
+  if intention = i>DROP_OFF [drop-off-passengers]
+  if intention = i>PICK_UP [pick-up-passengers]
+  if intention = i>DRIVE [travel-to next-stop?]
+end
+
+to drop-off-passengers
+  foreach bus_passengers [ let passenger ?
+    if wants-to-leave passenger [
+      drop-off passenger
+      if debug_traffic [mention "Dropped off" passenger]]]
+end
+
+to pick-up-passengers
+  foreach get-passengers-at-stop current_stop [ let passenger ?
+    if wants-to-enter passenger and not overloaded? [
+      pick-up passenger
+      if debug_traffic [mention "Picked up" passenger]]
+]
+end
+
+to pick-up [passenger] pick-up-passenger id-of passenger end
+to drop-off [passenger] drop-off-passenger id-of passenger end
+
+to-report next-stop?
+  ; I'm driving between two stops, so just continue.
+  if in-transit? [ report next_stop ]
+  
+  ; I'm at a stop, need to determine next. I'm in home district. What's next stop on default district track?
+  if not in-transit? and home? [ report next-stop-in-district? ]
+  
+  ; I'm not in home district. What's the next stop on the shortest route to my home district?
+  if not in-transit? and not home? [ report next-stop-to-district? ]
+end
+
+to-report next-stop-in-district?
+  ; Returns the next stop on the default district track. In case I'm just entering the district,
+  ; it's simply an arbitrary successor on that track of my current stop. If I've been driving
+  ; here for some time already, need to take into account previous stop as well, because stops
+  ; can occur multiple times in each track.
+  
+  ; First, naively determine an arbitrary successor.
+  
+  let next_stop_in_district successor-of location? stops-of district
+  
+  ; Then, loop through the default track, taking my previous stop into account, to see if I was already
+  ; somewhere along the track.
+  
+  let previous_element first stops-of district
+  
+  foreach enumerate stops-of district [ let current_index (? + 1) mod length stops-of district
+    let current_element item current_index stops-of district
+    if previous_element = previous_stop and current_element = location? [
+      set next_stop_in_district item ((current_index + 1) mod length stops-of district) stops-of district ]
+    set previous_element current_element ]
+  
+  report next_stop_in_district
+end
+
+to-report next-stop-to-district?
+  let closest_district_stop false
+  let lowest_cost 999999
+  
+  foreach stops-of district [ let district_stop ?
+    let cost item 1 table:get dijkstra (list location? district_stop)
+    if cost < lowest_cost [
+      set lowest_cost cost
+      set closest_district_stop district_stop]]
+  
+  report first first table:get dijkstra (list location? closest_district_stop)
+end
+
+to mention [message passenger]
+  show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
+end
