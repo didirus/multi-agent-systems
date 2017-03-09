@@ -33,7 +33,6 @@ buses-own [
   ; VARIABLES
   desire          ; The current desire of this bus.
   intention       ; The current intention of this bus that has the highest priority.
-  buses_bought    ; For the first bus, to count how many buses he has already bought.
   district        ; The index of the track this bus is currently driving.
   
   ; DESIRES
@@ -77,6 +76,16 @@ buses-own [
   overloaded/oldest_buyer                ; Temporarily store ID of olders buyer.
   overloaded/newest_bus                  ; The id of the newest bus right before I bought one.
   overloaded/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out
+  
+  socialnetwork:JUST_BEEN_BOUGHT
+  socialnetwork:FULLY_INFORMED
+  
+  socialnetwork.this_is_my_id
+  
+  socialnetwork/state 
+  socialnetwork/collegues
+  socialnetwork/start_index
+  
 ]
 
 to execute-actions
@@ -92,11 +101,7 @@ to execute-actions
   perform-actions
   check-inbox
   lead-protocols
-  
-  if (bus_id = 24) and (buses_bought < (length districts - 1)) [
-    ;I'm the first bus, and there are still tracks without bus! Buy new one.
-    add-bus 1
-    set buses_bought buses_bought + 1 ]
+
 end
 
 to-report determine-desire? ; Returns the desire given the situation.

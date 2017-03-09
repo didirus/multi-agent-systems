@@ -61,19 +61,20 @@ to init-buses
   set overloaded/oldest_buyer 9999
   set overloaded/other_buyers []
   set overloaded/oldest_requester 9999
+ 
+  set socialnetwork:JUST_BEEN_BOUGHT "just_been_bought"
+  set socialnetwork:FULLY_INFORMED "I'm_fully_informed"
+  
+  set socialnetwork.this_is_my_id "this_is_my_id"
+ 
+  set socialnetwork/state socialnetwork:JUST_BEEN_BOUGHT
+  set socialnetwork/collegues []
+  set socialnetwork/start_index 24
   
   ; _________
   ; VARIABLES
-  set buses_bought 0
   set district false
   
   if debug_messages or debug_purchases [ debug "I am created." ]
-  
-  if (bus_id - 24) < length districts [
-    
-    ; I'm one of the first few buses. Go to a track that has no
-    ; bus yet, and set desire to 'routine' to start driving.
-      
-    get-assigned-to bus_id mod length districts]  
 
 end

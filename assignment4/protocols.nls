@@ -26,6 +26,7 @@ end
 
 to lead-protocols ; Loops through the lead procedures of all protocols.
   lead-overloaded
+  lead-socialnetwork
 end
 
 to clear-temporary-memory
@@ -274,3 +275,66 @@ end
 ; Getter functions for helper tuple
 to-report helper-ID-of       [helper] report item 0 helper end
 to-report helper-busyness-of [helper] report item 1 helper end
+
+to lead-socialnetwork ; After reading my inbox, I will handle the socialnetwork protocol if neccessary 
+  
+  if first-bus? and not buses-initialised-on-all-districts? [
+    
+    ; I'm the first bus, and there are still tracks without buses! Buy new one.
+    
+    ; Get assigned to my own initial district 
+    if socialnetwork/state = socialnetwork:JUST_BEEN_BOUGHT [
+      get-assigned-to bus_id mod length districts
+      set socialnetwork/state socialnetwork:FULLY_INFORMED ]
+    
+    ; Add a bus and keep track of his id in my own socialnetwork
+    add-bus 1
+    set socialnetwork/collegues lput (amount-of-buses-including-self? + socialnetwork/start_index) socialnetwork/collegues
+    stop]
+  
+  if socialnetwork/state = socialnetwork:JUST_BEEN_BOUGHT [
+    
+    ; I've just been bought. I'm either the first bus to get assigned a 
+    ; certain district. Or I'm bought by the overloaded protocol
+    
+    ifelse first-in-district? [ ; If I'm the first bus in my district
+      
+      ; Get assigned an initial district based on own ID
+      get-assigned-to bus_id mod length districts
+      
+      ; Store all other district initialiser id's in socialnetwork
+      foreach index-in-range length districts  [  
+        if socialnetwork/start_index + ? != bus_id [
+          set socialnetwork/collegues lput (socialnetwork/start_index + ?) socialnetwork/collegues]]]
+    
+    [ ; I'm bought in the overloaded protocol, I need to broadcast my bus_id to all older buses
+      foreach index-in-range (bus_id - socialnetwork/start_index)  [  
+        let younger_bus_id (socialnetwork/start_index + ?)
+        
+        ; Storing all older id's
+        set socialnetwork/collegues lput younger_bus_id socialnetwork/collegues]]
+        
+        ; Broadcasting own id to others
+        broadcast "socialnetwork" socialnetwork.this_is_my_id bus_id
+        
+    set socialnetwork/state socialnetwork:FULLY_INFORMED
+    stop]
+  
+end
+
+to follow-socialnetwork [sender body details] ; This function is called after incoming 'socialnetwork' messages.
+  
+  if body = socialnetwork.this_is_my_id [ 
+    
+    ; A new bus introduces himself. I will add him to my own socialnetwork
+    
+    if not member? details socialnetwork/collegues [
+      set socialnetwork/collegues lput details socialnetwork/collegues]]
+end
+
+; Helper functions for socialnetwork protocol
+to-report amount-of-buses-including-self? report amount-of-other-buses? + 1 end
+to-report amount-of-other-buses? report length socialnetwork/collegues end
+to-report first-bus? report bus_id = socialnetwork/start_index end
+to-report first-in-district? report bus_id - socialnetwork/start_index < length districts end
+to-report buses-initialised-on-all-districts? report amount-of-buses-including-self? >= length districts end

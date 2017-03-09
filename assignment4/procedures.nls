@@ -1,17 +1,8 @@
 ; This file contains all kinds of auxiliary procedures.
 
-to-report all-buses? ; Returns list with the IDs of all buses, except my own.
-  let ids []
-  
-  ; for all buses, get bus ids
-  ask buses [ set ids lput bus_id ids ]
-  
-  ; remove own index from ids
-  set ids remove bus_id ids
-  
-  ; return id list
-  report ids
-end
+; Returns list with the IDs of all buses, except my own.
+to-report all-buses? report socialnetwork/collegues  end
+
 
 to-report newest-bus? ; Returns the ID of the newest bus.
   report max fput bus_id all-buses?
@@ -102,10 +93,6 @@ to-report home?
 end
 
 to-report just-came-home?
-  debug (word previous_stop " so " (previous_stop = -1
-   or not member? previous_stop stops-of district
-   or not (successor-of previous_stop stops-of district = location?)))
-  
   report previous_stop = -1
    or not member? previous_stop stops-of district
    or not (successor-of previous_stop stops-of district = location?)
