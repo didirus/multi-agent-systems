@@ -5,25 +5,6 @@
 ; for each protocol, for instance 'overloaded', there is a lead
 ; procedure `lead-overloaded` and a follow function `follow-overloaded`.
 
-to-report busy?
-  ; reports boolean: true if a bus is busy, false if it is not
-  
-  ifelse how-busy? >= overloaded/busy_threshold [
-    report true  ] 
-  [ report false ]
-end
-
-to-report how-busy?
-  ; reporter function that (in future) calculates the level of
-  ; busyness of a bus
-  
-  ; Temporarily report 1 + overloaded/reallocation_timer if it is not overloaded
-  ifelse overloaded? [
-    report 1 + overloaded/reallocation_timer]
-  ; else: if it is not overloaded, return 0
-  [ report 0 ]
-end
-
 to lead-protocols ; Loops through the lead procedures of all protocols.
   lead-overloaded
 end
@@ -33,6 +14,7 @@ to clear-temporary-memory
   set overloaded/other_buyers []
   set overloaded/oldest_buyer 9999
   set overloaded/oldest_requester 9999
+  set overloaded/capacity_preferences []
 end
 
 to lead-overloaded
@@ -40,7 +22,7 @@ to lead-overloaded
   handle-timers
   
   if overloaded/state = overloaded:UNINITIATED [
-    if busy? and not (overloaded/timer > 0) [
+    if full? and not (overloaded/timer > 0) [
       
       ; I'm overloaded and waited long enough, so initiate protocol!
       
@@ -74,24 +56,50 @@ to lead-overloaded
   
   if overloaded/state = overloaded:ABOUT_TO_BUY [
     
-    ; Apparently, no-one in my district still has capacity. So buy!
-    ; I will check my stored messages if other districts can help out, if so I 
-    ; will call someone from another district to come and help me. Else: buy a new bus
+    ; I will check my stored messages if other districts can help out, if so I will
+    ; call someone from another district to come and help me. Else: buy a new bus.
     
-    ; check for the most quiet district. If another district is quiet enough, command a bus
-    ; to come to my district.
+    ; Check for the most quiet district. If another district is quiet enough, command
+    ; a bus to come to my district.
+    
     ifelse can-another-district-help-out? [
       let most_quiet_district     which-district-can-help-out?
       let bus_to_be_reallocated   get-least-busy most_quiet_district
       
-      if debug_messages [ debug (word "District " most_quiet_district " can help me out! I will assign a random bus of that district to mine, which is bus: " bus_to_be_reallocated ".")]
+      if debug_messages [ debug (word "D" most_quiet_district " can help me out! I will assign a random bus of that district to mine, which is bus " bus_to_be_reallocated ".")]
       send bus_to_be_reallocated "overloaded" overloaded.come_to_district district
       end-overloaded]
     
     ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
     [ if debug_messages [ debug (word "No answers from my district. No other districts have enough capacity.")]
-      buy]
+      broadcast "overloaded" overloaded.cast_your_vote false
+      set overloaded/state overloaded:AWAITING_VOTES]
     
+    stop]
+  
+  if overloaded/state = overloaded:AWAITING_VOTES [
+    
+    ; In the previous tick I asked other buses to vote on the 
+    ; capacity of the bus I'm going to buy. This tick I am receiving
+    ; those votes. I will switch my state to indicate that I will 
+    ; collect and aggregate them next vote.
+    
+    set overloaded/state overloaded:COLLECTING_VOTES
+    stop]
+  
+  if overloaded/state = overloaded:COLLECTING_VOTES [
+    let preferred_capacity social-choice-function overloaded/capacity_preferences
+    
+    ifelse full? [
+      add-bus preferred_capacity
+      
+      set overloaded/newest_bus newest-bus?
+      set overloaded/state overloaded:INSTRUCTING
+      
+      if debug_messages [ debug (word "I bought a " bus-type-to-string preferred_capacity " bus.")]]
+    [
+      if debug_messages [ debug (word "I was about to buy a " bus-type-to-string preferred_capacity " bus, but had capacity again.")]
+      end-overloaded]
     stop]
   
   if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
@@ -136,7 +144,7 @@ to follow-overloaded [sender body details] ; This function is called after incom
     ; Somebody wants to buy, but I still
     ; have capacity. So I report my district and busyness level
 
-    if not busy? [send sender "overloaded" overloaded.do_not_buy (list district how-busy?)]
+    if not full? [send sender "overloaded" overloaded.do_not_buy (list district fullness?)]
     stop]
   
   if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:AWAITING_RESPONSE [
@@ -191,6 +199,20 @@ to follow-overloaded [sender body details] ; This function is called after incom
     set overloaded/other_buyers lput details overloaded/other_buyers
     set overloaded/state overloaded:RESOLVING_SIMULTANEOUS_BUY
     
+    stop]
+  
+  if body = overloaded.cast_your_vote [
+    if fullness? <= 0.25 [ send sender "overloaded" overloaded.here_is_my_vote (list small_bus medium_bus large_bus) stop ]
+    if fullness? <= 0.50 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus small_bus large_bus) stop ]
+    if fullness? <= 0.75 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus large_bus small_bus) stop ]
+    if fullness? <= 1.00 [ send sender "overloaded" overloaded.here_is_my_vote (list large_bus medium_bus small_bus) stop ]
+    stop]
+    
+  if body = overloaded.here_is_my_vote [
+    
+    assert "Received an unexpected capacity preference." overloaded/state = overloaded:COLLECTING_VOTES
+    
+    set overloaded/capacity_preferences lput details overloaded/capacity_preferences
     stop]
 end
 
@@ -252,24 +274,15 @@ to-report get-least-busy [most_quiet_district]
   report helper-ID-of helper  ; report the bus ID which will be reallocated      
 end
 
-to buy
-  ifelse busy? [
-    add-bus 2
-    set overloaded/newest_bus newest-bus?
-    set overloaded/state overloaded:INSTRUCTING
-
-    if debug_messages [ debug (word "I bought a bus.")]]
-  [
-    if debug_messages [ debug (word "I was about to buy, but had capacity again.")]
-    end-overloaded]
-end
-
 to end-overloaded
   if debug_messages [ debug (word "I am ending the protocol from state '" overloaded/state "'.")]
   set overloaded/timer overloaded/timeout
   set overloaded/state overloaded:UNINITIATED
   clear-temporary-memory
 end
+
+to-report fullness? report length bus_passengers / capacity? end
+to-report full? report fullness? = 1 end
 
 ; Getter functions for helper tuple
 to-report helper-ID-of       [helper] report item 0 helper end

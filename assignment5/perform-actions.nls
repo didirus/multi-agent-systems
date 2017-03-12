@@ -19,8 +19,7 @@ to pick-up-passengers
   foreach get-passengers-at-stop current_stop [ let passenger ?
     if wants-to-enter passenger and not overloaded? [
       pick-up passenger
-      if debug_traffic [mention "Picked up" passenger]]
-]
+      if debug_traffic [mention "Picked up" passenger]]]
 end
 
 to pick-up [passenger] pick-up-passenger id-of passenger end

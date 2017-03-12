@@ -5,6 +5,10 @@ to init-buses
   set graph [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
   set marker "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
   set central_station 3
+  set small_bus 1
+  set medium_bus 2
+  set large_bus 3
+  set social_choice_function task nauru-count
   
   set districts [
     [ 3 16 11 1 19 23 13 7 17 10 5 4 ]
@@ -42,6 +46,8 @@ to init-buses
   set overloaded:COLLIDED "collided"
   set overloaded:BOUGHT_SIMULTANEOUSLY "bought_simultaneously"
   set overloaded:AWAITING_RESPONSE "awaiting_reponse"
+  set overloaded:AWAITING_VOTES "awaiting_votes"
+  set overloaded:COLLECTING_VOTES "collecting_votes"
   set overloaded:RESOLVING_SIMULTANEOUS_BUY "resolving_simultaneous_buy"
   
   set overloaded.want_to_buy "want to buy"
@@ -49,18 +55,18 @@ to init-buses
   set overloaded.we_collided "we collided"
   set overloaded.come_to_district "come to district"
   set overloaded.we_both_bought "we both bought"
+  set overloaded.cast_your_vote "cast your vote"
+  set overloaded.here_is_my_vote "here is my vote"
   
   set overloaded/state overloaded:UNINITIATED
-  set overloaded/busy_threshold 1
   set overloaded/quiet_district_threshold 2
   set overloaded/timeout 50
   set overloaded/timer 0
-  set overloaded/reallocation_timeout 30
-  set overloaded/reallocation_timer 0       ; Is not actually implemented yet
   set overloaded/timer 0
   set overloaded/oldest_buyer 9999
   set overloaded/other_buyers []
   set overloaded/oldest_requester 9999
+  set overloaded/capacity_preferences []
   
   set discovery.this_is_my_id "this_is_my_id"
   
