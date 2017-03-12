@@ -105,13 +105,18 @@ to-report nauru-count [ preference_orders ]
   report table:max scores
 end
 
-to table:increment [ table key addition ]
+to table:increment [ table key addition ] ; Adds `addition` to the value of `key` in `table`.
+  
+  ; If `key` is not yet present in `table`, defaults its value to 0.
+  ; So if `some_table` is empty, `table_increment some_table some_key
+  ; 5` will result in key `some_key` having value 5.
+  
   if not table:has-key? table key [ table:put table key 0 ]
   let old_value table:get table key
   table:put table key old_value + addition
 end
     
-to-report table:max [ table ]
+to-report table:max [ table ] ; Returns the key having the largest value in `table`.
   let tuples table:to-list table
   
   let max_key key-of first tuples
