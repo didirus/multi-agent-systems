@@ -407,7 +407,7 @@ end
 to update-bus-stops-colors
   ask bus_stops [
     ;let nr_waiting (length passengers_waiting)
-    set label who; " " nr_waiting)
+    set label (word who "#Waiting: "  length passengers_waiting); " " nr_waiting)
     ;set label-color white
     ifelse length passengers_waiting <= 10
     [

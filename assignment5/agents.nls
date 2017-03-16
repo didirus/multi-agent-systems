@@ -1,4 +1,4 @@
-__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls"]
+__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls" "auction.nls" "money.nls"]
 
 extensions[table]
 
@@ -22,6 +22,8 @@ buses-own [
   debug_purchases      ; Set to true to make buses say something right after they've been bought.
   debug_show_ticks     ; Set to true to show the tick number at each debug output.
   debug_show_districts ; Set to true to show the district number at each debug output.
+  debug_auctions       ; Set to true to show the auction details.
+  debug_money          ; Set to true to show in-/outcomes.
   
   ; CONSTANTS
   districts                  ; List of all tracks and their stops.
@@ -88,6 +90,38 @@ buses-own [
   discovery/colleagues
   discovery/oldest_bus
   
+  money.request_payment
+  money.here_is_my_money
+  
+  money/balance 
+  
+  auction::TYPE
+  
+  auction:UNINITIATED                    ; Protocol not started.
+  auction:AWAITING_RESPONSE              ; I want to auction myself, awaiting responses.
+  auction:ABOUT_TO_AUCTION
+  
+  auction.initiating_auction
+  auction.this_is_my_bid
+  
+  auction/state
+  auction/winner
+  auction/winning_district
+  auction/winning_bid
+  
+  ;-----
+  ; vickrey 
+  ;-----
+  auction/vickrey_bid
+  
+  ;-----
+  ; english
+  ;-----
+  auction/maximum_duration
+  auction/duration
+  auction/current_bids 
+  auction/improvement
+  auction/bid_range
 ]
 
 to execute-actions

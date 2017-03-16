@@ -1,0 +1,178 @@
+
+; ------------------------------------------------------------------------------------
+;                                       LEAD AUCTION
+;                                AFTER READING ALL MESSAGES
+; ------------------------------------------------------------------------------------
+
+to lead-auction
+  
+  ; Initiating auction
+  if I-should-initiate-auction? [ 
+    mark
+    initiate-auction 
+    stop] 
+  
+  ; Handle auction
+  if I-am-in-auction? [
+    handle-auction
+    stop]
+  
+end
+
+; ------------------------------------------------------------
+;                    Initiating auction
+;
+; - Decide whether to initiate an auction or not.
+; - If I do initiate an auction, broadcast my bus_id and capacity
+; ------------------------------------------------------------
+
+
+to-report I-should-initiate-auction?
+  
+  ; TEMPORARY: based on random dice throw, declare myself to be auctioned.
+  ; IN FUTURE: based on income, declare myself to be auctioned.
+  
+  if auction/state = auction:UNINITIATED [
+    let dice_threshold 0.01
+    let dice_throw random-float 1
+  
+    report dice_throw <= dice_threshold]
+  report false
+end
+
+to initiate-auction
+  
+  ; I decided to give myself up for auctioning. I will now broadcast this
+  ; to everyone.
+  
+  broadcast "auction" auction.initiating_auction auction-details?
+  set auction/state auction:AWAITING_RESPONSE
+  
+end
+
+to-report auction-details?
+  report (list bus_id capacity?)
+end
+
+
+; ------------------------------------------------------------
+;                     Handle auction
+;
+; - await responses, or:
+; - go into finish-auction function 
+; ------------------------------------------------------------
+
+to-report I-am-in-auction?
+  report auction/state != auction:UNINITIATED
+end
+
+to handle-auction
+  
+  ; I am currently in auction. I will decide when to stop the auction.
+  
+  ; I previously decided to go into auction, now I will wait for bids
+  if auction/state = auction:AWAITING_RESPONSE
+  [
+    set auction/state auction:ABOUT_TO_AUCTION
+    stop]
+  
+  ; I have waited long enough, bids are in. I will now pick the winner
+  if auction/state = auction:ABOUT_TO_AUCTION [
+    finish-auction]
+  
+end
+
+; ------------------------------------------------------------
+;               Handle auction: FINISHING AUCTION
+;
+; - I am the bus being auctioned: I will now decide a winner.
+; - The winner will have to pay the Vickrey bid.
+; - I will handle payment
+; - I will end the protocol
+; ------------------------------------------------------------
+
+to finish-auction
+ 
+  ; send message to winner, winner needs to pay vickrey bid
+  send auction/winner "money" money.request_payment auction/vickrey_bid
+  
+  ; go to winning district
+  get-assigned-to auction/winning_district
+  
+  clear-auction-memory
+  
+end
+
+to clear-auction-memory
+  set auction/state auction:UNINITIATED
+  set auction/winner false
+  set auction/winning_district false
+  set auction/winning_bid 0
+  set auction/vickrey_bid 0
+end
+
+
+; ------------------------------------------------------------------------------------
+;                                       FOLLOW AUCTION
+;                                 WHILE READING ALL MESSAGES
+; ------------------------------------------------------------------------------------
+
+
+
+to follow-auction [sender body details] ; This function is called after incoming 'auction' messages.
+  
+  ; Handle incomming auctions
+  if body = auction.initiating_auction and not I-am-in-auction? [
+      
+      ; Make offer partly based on the capacity on the auctioned bus
+      let offer private-value get-auction-capacity details
+      
+      ; Create new message details      
+      let auctioned_bus get-auctioned-id details
+      
+      ; Let everyone know what my offer is
+      send auctioned_bus "auction" auction.this_is_my_bid (list offer district)
+      stop]
+  
+  ; Handle bids
+  
+  ; I am being auctioned 
+  if I-am-in-auction? [
+    
+    ; Someone wants to place a bid on me
+    if body = auction.this_is_my_bid [
+      
+      ; Get bidding details
+      let offer              get-offer    details
+      let candidate_district get-district details
+      
+      ; If offer is better then others.
+      ; This prioritises oldest bus (first in line) if multiple highest
+      ; bids are offerred. 
+      ifelse offer > auction/winning_bid [
+         
+        set auction/winner sender                       ; current bidder
+        set auction/winning_district candidate_district ; update to bidders district
+        set auction/vickrey_bid auction/winning_bid     ; previous highest bid, is now vickrey
+        set auction/winning_bid offer]                  ; new highest bid, is current offer
+      [
+        ; If current offer is better then vickrey bid, update
+        if offer > auction/vickrey_bid [ set auction/vickrey_bid offer ]]]]
+  
+end
+
+to-report get-auctioned-id     [details] report first  details  end
+to-report get-auction-capacity [details] report item 1 details end
+
+to-report get-offer    [details] report first  details end
+to-report get-district [details] report item 1 details end
+
+to-report private-value [capacity]
+  ; TEMPORARY based on fulness function
+  ; IN FUTURE based on "money balance"
+  report common-value capacity + fullness? 
+end
+  
+to-report common-value [capacity]
+  report capacity / bus_type3_capacity
+end  
