@@ -27,7 +27,7 @@ to init-buses
   set debug_show_ticks true
   set debug_show_districts true
   set debug_auctions true
-  set debug_money true
+  set debug_money false
   
   ; _______
   ; DESIRES
@@ -79,6 +79,7 @@ to init-buses
   set money.here_is_my_money "here is my money" 
   
   set money/balance 0
+  set money/cost_per_waiting_passenger 1
   
   set auction::TYPE             "vickrey"            ; Choose type of auction: either vickrey or english
   set auction:UNINITIATED       "uninitiated"        ; Protocol not started.
@@ -91,12 +92,12 @@ to init-buses
   set auction/state auction:UNINITIATED
   set auction/winner false
   set auction/winning_district false
-  set auction/winning_bid 0
+  set auction/winning_bid -99
   
   ;-----
   ; vickrey 
   ;-----
-  set auction/vickrey_bid 0
+  set auction/vickrey_bid -99
   
   ;-----
   ; english

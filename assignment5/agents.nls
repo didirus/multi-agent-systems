@@ -94,6 +94,7 @@ buses-own [
   money.here_is_my_money
   
   money/balance 
+  money/cost_per_waiting_passenger
   
   auction::TYPE
   
@@ -137,16 +138,16 @@ to execute-actions
   perform-actions
   check-inbox
   lead-protocols
-  
+
   if only-bus? [ buy-first-buses ]
 end
 
 to-report determine-desire? ; Returns the desire given the situation.
   
-  if assigned-to-district? and waiting-passengers? [
+  if assigned-to-district? and any-passengers? [
      report d>FOLLOWING_ROUTINE ]
   
-  if assigned-to-district? and not waiting-passengers? [
+  if assigned-to-district? and not any-passengers? [
     report d>BEING_IDLE ]
   
   if not assigned-to-district? [

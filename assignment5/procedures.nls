@@ -15,8 +15,28 @@ to-report one-of-the-first-buses?
   report bus_id - discovery/oldest_bus < length districts
 end
  
-to-report waiting-passengers? ; Returns whether there are waiting passengers.
-  report any? bus_stops with [length passengers_waiting > 0]
+to-report any-passengers? ; Returns whether there are waiting passengers.
+  ; TEMPORARY
+  ;report any? bus_stops with [length passengers_waiting > 0]
+  
+  ; Count amount of waiting passengers
+  let amount 0
+  foreach districts [ let dis ?
+    let index position dis districts
+    set amount amount + amount_of_waiting_passengers_in index]
+   
+   ;If no one is waiting and I don't have passengers, report false
+  report amount > 0 or length bus_passengers > 0
+end
+
+to-report amount_of_waiting_passengers_in [dis]
+  
+  let busstops remove-duplicates item dis districts
+  let amount 0
+  
+  foreach busstops [ let busstop ?
+    set amount amount + length get-passengers-at-stop busstop]
+  report amount
 end
 
 to-report overloaded? ; Returns whether this bus is full.

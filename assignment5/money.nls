@@ -8,6 +8,15 @@ to subtract-expenses [ amount ]
   set money/balance money/balance - amount
 end
 
+to lead-money
+  
+  ; Lose money based on amount of passengers waiting
+  if assigned-to-district? [
+    let waiting_passengers amount_of_waiting_passengers_in district 
+    subtract-expenses money/cost_per_waiting_passenger * waiting_passengers]
+  
+end
+
 to follow-money [sender body details] ; This function is called after incoming 'money' messages.
   
   ; If I need to pay

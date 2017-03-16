@@ -8,7 +8,6 @@ to lead-auction
   
   ; Initiating auction
   if I-should-initiate-auction? [ 
-    mark
     initiate-auction 
     stop] 
   
@@ -107,8 +106,8 @@ to clear-auction-memory
   set auction/state auction:UNINITIATED
   set auction/winner false
   set auction/winning_district false
-  set auction/winning_bid 0
-  set auction/vickrey_bid 0
+  set auction/winning_bid -99
+  set auction/vickrey_bid -99
 end
 
 
@@ -168,11 +167,13 @@ to-report get-offer    [details] report first  details end
 to-report get-district [details] report item 1 details end
 
 to-report private-value [capacity]
-  ; TEMPORARY based on fulness function
-  ; IN FUTURE based on "money balance"
-  report common-value capacity + fullness? 
+  ; TEMPORARY based on fulness function (indicating busyness) times 
+  ; the current balance (indicating financial status) times normalised
+  ; auctioned bus capacity (indicating attractiveness of auctioned bus)
+  let bid (capacity / bus_type3_capacity) * money/balance * fullness?
+ 
+  ; I can't bid lower then 0
+  if bid < 0 [ set bid 0 ]
+
+  report  bid
 end
-  
-to-report common-value [capacity]
-  report capacity / bus_type3_capacity
-end  
