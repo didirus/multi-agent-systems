@@ -32,7 +32,13 @@ to-report I-should-initiate-auction?
   ; IN FUTURE: based on income, declare myself to be auctioned.
   
   if auction/state = auction:UNINITIATED [
-    let dice_threshold 0.01
+    
+    ; Determine amount of collegues, minimally 1
+    let collegues length discovery/colleagues
+    if  collegues = 0 [ set collegues 1 ]
+    
+    ; Chance proportional to the amount of collegues
+    let dice_threshold 0.001 * 1 / (collegues)
     let dice_throw random-float 1
   
     report dice_throw <= dice_threshold]
@@ -92,6 +98,12 @@ end
 
 to finish-auction
  
+  ; I can only finish the auction if I'm not the only one in my district.
+  if auction/am_I_alone_in_district [
+    if debug_auctions [ debug (word "I was trying to auction myself, then I quit since I found out I'm the only one in my district")]
+    clear-auction-memory
+    stop]
+  
   ; send message to winner, winner needs to pay vickrey bid
   send auction/winner "money" money.request_payment auction/vickrey_bid
   
@@ -108,6 +120,7 @@ to clear-auction-memory
   set auction/winning_district false
   set auction/winning_bid -99
   set auction/vickrey_bid -99
+  set auction/am_I_alone_in_district true
 end
 
 
@@ -121,7 +134,8 @@ end
 to follow-auction [sender body details] ; This function is called after incoming 'auction' messages.
   
   ; Handle incomming auctions
-  if body = auction.initiating_auction and not I-am-in-auction? [
+  ; district != false; checks whether newly bought bus is assigned to a district
+  if body = auction.initiating_auction and not I-am-in-auction? and district != false [
       
       ; Make offer partly based on the capacity on the auctioned bus
       let offer private-value get-auction-capacity details
@@ -144,6 +158,12 @@ to follow-auction [sender body details] ; This function is called after incoming
       ; Get bidding details
       let offer              get-offer    details
       let candidate_district get-district details
+      
+      ; If the message is from my own district.
+      ; Indicating I'm not alone in my district.
+      if candidate_district = district [
+        set auction/am_I_alone_in_district false
+      ]
       
       ; If offer is better then others.
       ; This prioritises oldest bus (first in line) if multiple highest

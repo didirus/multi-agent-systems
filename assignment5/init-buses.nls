@@ -8,6 +8,9 @@ to init-buses
   set small_bus 1
   set medium_bus 2
   set large_bus 3
+  set capacity_type_1 12
+  set capacity_type_2 60
+  set capacity_type_3 150
   set social_choice_function task nauru-count
   
   set districts [
@@ -22,11 +25,11 @@ to init-buses
   ; _______
   ; CONFIGS
   set debug_traffic false
-  set debug_messages true
+  set debug_messages false
   set debug_purchases false
-  set debug_show_ticks true
-  set debug_show_districts true
-  set debug_auctions true
+  set debug_show_ticks false
+  set debug_show_districts false
+  set debug_auctions false
   set debug_money false
   
   ; _______
@@ -62,7 +65,7 @@ to init-buses
   
   set overloaded/state overloaded:UNINITIATED
   set overloaded/quiet_district_threshold 2
-  set overloaded/timeout 50
+  set overloaded/timeout 20
   set overloaded/timer 0
   set overloaded/timer 0
   set overloaded/oldest_buyer 9999
@@ -79,7 +82,9 @@ to init-buses
   set money.here_is_my_money "here is my money" 
   
   set money/balance 0
-  set money/cost_per_waiting_passenger 1
+  set money/cost_per_waiting_passenger 0.05
+  set money/dropped_of_this_tick 0
+  set money/payment_per_drop_off 100
   
   set auction::TYPE             "vickrey"            ; Choose type of auction: either vickrey or english
   set auction:UNINITIATED       "uninitiated"        ; Protocol not started.
@@ -93,6 +98,7 @@ to init-buses
   set auction/winner false
   set auction/winning_district false
   set auction/winning_bid -99
+  set auction/am_I_alone_in_district true
   
   ;-----
   ; vickrey 

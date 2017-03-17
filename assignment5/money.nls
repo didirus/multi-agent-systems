@@ -12,8 +12,12 @@ to lead-money
   
   ; Lose money based on amount of passengers waiting
   if assigned-to-district? [
-    let waiting_passengers amount_of_waiting_passengers_in district 
+    let waiting_passengers amount-of-waiting-passengers-in district 
     subtract-expenses money/cost_per_waiting_passenger * waiting_passengers]
+  
+  ; Gain money based on amount of passengers dropped of this tick
+  add-income money/dropped_of_this_tick * money/payment_per_drop_off
+  set money/dropped_of_this_tick 0 ; reset dropped_of_this_tick counter
   
 end
 

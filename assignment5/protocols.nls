@@ -284,7 +284,7 @@ to end-overloaded
 end
 
 to-report fullness? report length bus_passengers / capacity? end
-to-report full? report fullness? = 1 end
+to-report full? report fullness? >= 0.8 end
 
 ; Getter functions for helper tuple
 to-report helper-ID-of       [helper] report item 0 helper end

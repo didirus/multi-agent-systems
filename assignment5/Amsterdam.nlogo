@@ -14,6 +14,22 @@ routes-own [
 ]
 
 globals [
+
+  ; TEMPORARY
+  average_money
+
+  waiting_in_district_0
+  waiting_in_district_1
+  waiting_in_district_2
+
+  average_balance_district_0
+  average_balance_district_1
+  average_balance_district_2
+
+  capacity_in_district_0
+  capacity_in_district_1
+  capacity_in_district_2
+
   amsterdam_bus_stops_names
   days
   hours
@@ -244,10 +260,45 @@ to go
       set-time
       update-passengers-statistics
       update-bus-stops
+
+      ; --------- TEMPORARY ---------
+      let money_this_tick 0
+
+      set average_balance_district_0 []
+      set average_balance_district_1 []
+      set average_balance_district_2 []
+
+      set capacity_in_district_0 0
+      set capacity_in_district_1 0
+      set capacity_in_district_2 0
+
       ask buses [
         execute-actions
+
+        set waiting_in_district_0 amount-of-waiting-passengers-in 0
+        set waiting_in_district_1 amount-of-waiting-passengers-in 1
+        set waiting_in_district_2 amount-of-waiting-passengers-in 2
+
+        if district = 0 [set capacity_in_district_0 capacity_in_district_0 + capacity?]
+        if district = 1 [set capacity_in_district_1 capacity_in_district_1 + capacity?]
+        if district = 2 [set capacity_in_district_2 capacity_in_district_2 + capacity?]
+
+        if district = 0 [ set average_balance_district_0 lput money/balance average_balance_district_0 ]
+        if district = 1 [ set average_balance_district_1 lput money/balance average_balance_district_1 ]
+        if district = 2 [ set average_balance_district_2 lput money/balance average_balance_district_2 ]
+
+        set money_this_tick money_this_tick + money/balance
       ]
+
+      ifelse length average_balance_district_0 != 0 [set average_balance_district_0 mean average_balance_district_0][set average_balance_district_0 0]
+      ifelse length average_balance_district_1 != 0 [set average_balance_district_1 mean average_balance_district_1][set average_balance_district_1 0]
+      ifelse length average_balance_district_2 != 0 [set average_balance_district_2 mean average_balance_district_2][set average_balance_district_2 0]
+
+      ifelse count buses > 0 [set average_money (money_this_tick / count buses )][set average_money 0]
+
       add-buses
+      ; -----------------------------
+
     ]
   ]
 end
@@ -980,6 +1031,84 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot amount_passengers_waiting"
 "pen-1" 1.0 0 -7500403 true "" ""
+
+PLOT
+1414
+104
+1729
+329
+Average balance all districts
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot average_money"
+
+PLOT
+1729
+105
+2142
+330
+Amount of Passengers in District
+ticks
+#passengers
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"0" 1.0 0 -2674135 true "" "plot waiting_in_district_0"
+"1" 1.0 0 -13840069 true "" "plot waiting_in_district_1"
+"2" 1.0 0 -13345367 true "" "plot waiting_in_district_2"
+
+PLOT
+1729
+329
+2142
+547
+Average Balance in District
+ticks
+balance
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"0" 1.0 0 -2674135 true "" "plot average_balance_district_0"
+"1" 1.0 0 -13840069 true "" "plot average_balance_district_1"
+"2" 1.0 0 -13345367 true "" "plot average_balance_district_2"
+
+PLOT
+1729
+545
+2142
+767
+Capacity of buses in District
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"0" 1.0 0 -2674135 true "" "plot capacity_in_district_0"
+"1" 1.0 0 -13840069 true "" "plot capacity_in_district_1"
+"2" 1.0 0 -13345367 true "" "plot capacity_in_district_2"
 
 @#$#@#$#@
 ## WHAT IS IT?

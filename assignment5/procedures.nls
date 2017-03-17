@@ -23,13 +23,13 @@ to-report any-passengers? ; Returns whether there are waiting passengers.
   let amount 0
   foreach districts [ let dis ?
     let index position dis districts
-    set amount amount + amount_of_waiting_passengers_in index]
+    set amount amount + amount-of-waiting-passengers-in index]
    
    ;If no one is waiting and I don't have passengers, report false
   report amount > 0 or length bus_passengers > 0
 end
 
-to-report amount_of_waiting_passengers_in [dis]
+to-report amount-of-waiting-passengers-in [dis]
   
   let busstops remove-duplicates item dis districts
   let amount 0
@@ -44,15 +44,15 @@ to-report overloaded? ; Returns whether this bus is full.
 end
 
 to-report capacity? ; Returns my capacity according to my bus type.
-  if bus_type = small_bus [ report bus_type1_capacity ]
-  if bus_type = medium_bus [ report bus_type2_capacity ]
-  if bus_type = large_bus [ report bus_type3_capacity ]
+  if bus_type = small_bus  [ report capacity_type_1 ]
+  if bus_type = medium_bus [ report capacity_type_2 ]
+  if bus_type = large_bus  [ report capacity_type_3 ]
 end
 
 to-report bus-type-to-string [ some_bus_type ]
-  if some_bus_type = small_bus [ report "small" ]
+  if some_bus_type = small_bus  [ report "small" ]
   if some_bus_type = medium_bus [ report "medium" ]
-  if some_bus_type = large_bus [ report "large" ]
+  if some_bus_type = large_bus  [ report "large" ]
 end
 
 to-report home? ; Returns whether I'm currently in my district.
