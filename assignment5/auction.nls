@@ -190,10 +190,10 @@ to-report private-value [capacity]
   ; TEMPORARY based on fulness function (indicating busyness) times 
   ; the current balance (indicating financial status) times normalised
   ; auctioned bus capacity (indicating attractiveness of auctioned bus)
-  let bid (capacity / bus_type3_capacity) * money/balance * fullness?
+  let value (capacity / bus_type3_capacity) * money/balance * fullness?
  
-  ; I can't bid lower then 0
-  if bid < 0 [ set bid 0 ]
+  ; I can't value lower then 0
+  if value < 0 [ set value 0 ]
 
-  report  bid
+  report value
 end
