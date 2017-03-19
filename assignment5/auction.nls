@@ -33,12 +33,12 @@ to-report I-should-initiate-auction?
   
   if auction/state = auction:UNINITIATED [
     
-    ; Determine amount of collegues, minimally 1
-    let collegues length discovery/colleagues
-    if  collegues = 0 [ set collegues 1 ]
+    ; Determine amount of colleagues, minimally 1
+    let colleagues length discovery/colleagues
+    if  colleagues = 0 [ set colleagues 1 ]
     
-    ; Chance proportional to the amount of collegues
-    let dice_threshold 0.001 * 1 / (collegues)
+    ; Chance proportional to the amount of colleagues
+    let dice_threshold 0.001 * 1 / (colleagues)
     let dice_throw random-float 1
   
     report dice_throw <= dice_threshold]
