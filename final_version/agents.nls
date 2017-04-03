@@ -102,6 +102,8 @@ buses-own [
   auction/winning_district
   auction/winning_bid
   auction/alone_in_district
+  auction/cumulative_bids
+  auction/amount_of_bids
 ]
 
 to execute-actions

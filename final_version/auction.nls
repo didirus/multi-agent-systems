@@ -13,7 +13,6 @@ to-report initiate-auction?
 end
 
 to initiate-auction
-  mark
   ; I decided to give myself up for auctioning. I will now broadcast this.
   
   broadcast "auction" auction.initiating_auction capacity?
@@ -27,6 +26,7 @@ to handle-auction
   if auction/state = auction:AWAITING_RESPONSE [
     
     ; Just opened the action. Waiting for bids.
+    reset-auction-memory
     set auction/state auction:ABOUT_TO_AUCTION
     stop]
   
@@ -42,16 +42,31 @@ to finish-auction
     if debug_auctions [ debug (word "I was about to auction myself, but quit since I found out I'm the only one in my district")]]
   [
     ; Reassign myself to the winning district.
-    get-assigned-to auction/winning_district]
+    
+    let tuples table:to-list auction/cumulative_bids
+    
+    let max_district key-of first tuples
+    let max_offer value-of first tuples / table:get auction/amount_of_bids max_district
+    
+    
+    
+    foreach tuples [ let tuple ?
+      ; See which district placed the highest average bid.
+      let current_offer value-of tuple / table:get auction/amount_of_bids key-of tuple
+      if debug_auctions [ debug (word "D" (key-of tuple) " made an offer of " current_offer ".")]
+      if current_offer > max_offer [
+        set max_district key-of tuple
+        set max_offer current_offer ]]
+    
+    if debug_auctions [ debug (word "D" max_district " won the action with an average bid of " max_offer ".")]
+    get-assigned-to max_district]
   
-  clear-auction-memory
+  set auction/state auction:UNINITIATED
 end
 
-to clear-auction-memory
-  set auction/state auction:UNINITIATED
-  set auction/winner false
-  set auction/winning_district false
-  set auction/winning_bid -99
+to reset-auction-memory
+  set auction/cumulative_bids table:make
+  set auction/amount_of_bids table:make
   set auction/alone_in_district true
 end
 
@@ -64,15 +79,14 @@ to follow-auction [sender body details]
     stop]
   
   if in-auction? and body = auction.this_is_my_bid [
+    let dist sender-district-of details
+    let offer offer-of details
     
     ; If the message is from my own district, I know I'm not alone.
-    if sender-district-of details = district [ set auction/alone_in_district false]
+    if dist = district [ set auction/alone_in_district false]
     
-    ; See if this offer is the best offer so far.
-    if offer-of details > auction/winning_bid [
-      set auction/winner sender
-      set auction/winning_district sender-district-of details
-      set auction/winning_bid offer-of details]
+    table:increment auction/cumulative_bids dist offer
+    table:increment auction/amount_of_bids dist 1
     stop]
 end
 

@@ -25,10 +25,10 @@ to init-buses
   ; _______
   ; CONFIGS
   set debug_traffic false
-  set debug_messages true
+  set debug_messages false
   set debug_purchases false
-  set debug_show_ticks true
-  set debug_show_districts true
+  set debug_show_ticks false
+  set debug_show_districts false
   set debug_auctions false
   set debug_money false
   
