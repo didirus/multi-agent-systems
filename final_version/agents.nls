@@ -1,4 +1,4 @@
-__includes["action.nls" "update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls" "auction.nls" "money.nls"]
+__includes["action.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls" "auction.nls"]
 
 extensions[table]
 
@@ -107,13 +107,6 @@ buses-own [
 ]
 
 to execute-actions
-  ; The main executing loop for the bus. At each tick, first
-  ; determines which desire to pursue. Then, determines which
-  ; intentions go with that right now. Given the intentions,
-  ; the bus knows which actions to perform. After doing stuff,
-  ; check inbox for new messages (and reply to them). Lastly,
-  ; go over all protocols to see if the bus needs to act on them.
-  
   action
   check-inbox
   lead-protocols
