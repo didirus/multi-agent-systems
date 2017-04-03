@@ -32,17 +32,6 @@ to init-buses
   set debug_auctions false
   set debug_money false
   
-  ; _______
-  ; DESIRES
-  set d>BEING_IDLE "being-idle"
-  set d>FOLLOWING_ROUTINE "following-routine"
-  
-  ; __________
-  ; INTENTIONS
-  set i>DROP_OFF "drop_off"
-  set i>PICK_UP "pick_up"
-  set i>DRIVE "drive"
-  
   ; _________
   ; PROTOCOLS
   set overloaded:UNINITIATED "uninitiated"
@@ -113,6 +102,12 @@ to init-buses
   set auction/bid_range 0.05 
   set auction/current_bids table:make 
   set auction/improvement false
+  
+  ; _________
+  ; BEHAVIORS
+  set b>DRIVE "drive"
+  set b>LOAD "load"
+  set b>UNLOAD "unload"
   
   ; _________
   ; VARIABLES

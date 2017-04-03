@@ -1,4 +1,4 @@
-__includes["update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls" "auction.nls" "money.nls"]
+__includes["action.nls" "update-intentions.nls" "perform-actions.nls" "init-buses.nls" "protocols.nls" "procedures.nls" "messaging.nls" "read-dijkstra.nls" "auction.nls" "money.nls"]
 
 extensions[table]
 
@@ -39,19 +39,15 @@ buses-own [
   capacity_type_2            ; The capacity of bus type 2
   capacity_type_3            ; The capacity of bus type 3
   
+  ; BEHAVIORS
+  b>DRIVE
+  b>LOAD
+  b>UNLOAD
+  
   ; VARIABLES
   desire          ; The current desire of this bus.
   intention       ; The current intention of this bus that has the highest priority.
   district        ; The index of the track this bus is currently driving.
-  
-  ; DESIRES
-  d>BEING_IDLE
-  d>FOLLOWING_ROUTINE
-  
-  ; INTENTIONS
-  i>DROP_OFF
-  i>PICK_UP
-  i>DRIVE
   
   ; Beneath are protocol states and messages and
   ; protocol-specific variables the bus is keeping
@@ -139,27 +135,11 @@ to execute-actions
   ; check inbox for new messages (and reply to them). Lastly,
   ; go over all protocols to see if the bus needs to act on them.
   
-  set desire determine-desire?
-  update-intentions
-  perform-actions
+  action
   check-inbox
   lead-protocols
 
   if only-bus? [ buy-first-buses ]
 end
 
-to-report determine-desire? ; Returns the desire given the situation.
-  
-  if assigned-to-district? and any-passengers? [
-     report d>FOLLOWING_ROUTINE ]
-  
-  if assigned-to-district? and amount-of-waiting-passengers-in district = 0 [
-    report d>BEING_IDLE ]
-  
-  if not assigned-to-district? [
-     report d>BEING_IDLE ]
-end
-
-to buy-first-buses
-  foreach range-until (length districts - 1) [ add-bus small_bus ]
-end
+to buy-first-buses foreach range-until (length districts - 1) [ add-bus small_bus ] end

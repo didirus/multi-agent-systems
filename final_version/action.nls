@@ -1,0 +1,156 @@
+; ________________________
+; SUBSUMPTION ARCHITECTURE
+
+to action
+  ifelse assigned-to-district? and any-passengers? [
+    run (word "fire-" dominant-behavior?)]
+  [
+    ; I have no district yet, or there are no passengers. Do nothing to minimize costs.
+    stop]
+end
+
+to-report dominant-behavior?  
+  ; If between stops, only Drive should fire.
+  if in-transit? [report b>DRIVE]
+  
+  ; If in district, possibly Load or Unload should fire.
+  if home? [
+    
+    ; If at stop, and any passenger wants to leave, fire Unload..
+    if any bus_passengers (task wants-to-leave) [report b>UNLOAD]
+    
+    ; If at stop, and no passenger wants to leave, but any passenger wants to enter, fire Load.
+    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [report b>LOAD] ]
+  
+  ; If at stop, but no one wants to either enter or leave, fire Drive.
+  report b>DRIVE
+end
+
+to-report wants-to-leave [passenger]
+  ; Determines if `passenger` wants to leave at the current stop. This
+  ; is the case if it is his destination, or if he needs to transfer here.
+  
+  report (destination-of passenger = current_stop) or (at-junction? and not fastest-option? destination-of passenger);in-my-district destination-of passenger)
+end
+
+to-report wants-to-enter [passenger]
+  ; Determines if `passenger` wants to enter. This is the case
+  ; if his destination is in the district I'm driving.
+  
+  report not at-junction? or fastest-option? destination-of passenger
+end
+
+to-report fastest-option? [destination]
+  let route first table:get dijkstra (list current_stop destination)
+  
+  let fastest? true
+  let my_reach 0
+  
+  ; My reach: check how far in the passengers shortest path I reach
+  foreach route [
+    let busstop ?
+    if member? busstop stops-of district [
+      if position busstop route > my_reach [
+        set my_reach position busstop route ]]]
+  
+  ; This reach: Check how far in the passengers shortest path the overlapping districts reach
+  foreach districts [
+    let some_district ?
+    if some_district != item district districts[
+      if member? current_stop some_district [
+        let this_reach 0
+        foreach route [
+          let busstop ?
+          if member? busstop some_district [
+            if position busstop route > this_reach [
+              set this_reach position busstop route ]]]
+        if this_reach > my_reach [
+          set fastest? false]]]]
+  report fastest?
+end
+
+to-report destination-of [passenger] report item 1 passenger end
+to-report id-of [passenger] report item 0 passenger end
+
+; ________________
+; BEHAVIOR: UNLOAD
+to fire-unload
+  foreach bus_passengers [ let passenger ?
+    if wants-to-leave passenger [
+      
+      ; TEMPORARY (POSSIBLY): if wants-to-leave, I gain money
+      set money/dropped_of_this_tick (money/dropped_of_this_tick + 1)
+      
+      drop-off passenger
+      if debug_traffic [mention "Dropped off" passenger]]]
+end
+
+to drop-off [passenger] drop-off-passenger id-of passenger end
+
+; ______________
+; BEHAVIOR: LOAD
+to fire-load
+  foreach get-passengers-at-stop current_stop [ let passenger ?
+    if wants-to-enter passenger and not overloaded? [
+      pick-up passenger
+      if debug_traffic [mention "Picked up" passenger]]]
+end
+
+to pick-up [passenger] pick-up-passenger id-of passenger end
+
+
+; _______________
+; BEHAVIOR: DRIVE
+to fire-drive travel-to next-stop? end
+
+to-report next-stop?
+  ; I'm driving between two stops, so just continue.
+  if in-transit? [ report next_stop ]
+  
+  ; I'm at a stop, need to determine next. I'm in home district. What's next stop on default district track?
+  if not in-transit? and home? [ report next-stop-in-district? ]
+  
+  ; I'm not in home district. What's the next stop on the shortest route to my home district?
+  if not in-transit? and not home? [ report next-stop-to-district? ]
+end
+
+to-report next-stop-in-district?
+  ; Returns the next stop on the default district track. In case I'm just entering the district,
+  ; it's simply an arbitrary successor on that track of my current stop. If I've been driving
+  ; here for some time already, need to take into account previous stop as well, because stops
+  ; can occur multiple times in each track.
+  
+  ; First, naively determine an arbitrary successor.
+  
+  let next_stop_in_district successor-of location? stops-of district
+  
+  ; Then, loop through the default track, taking my previous stop into account, to see if I was already
+  ; somewhere along the track.
+  
+  let previous_element first stops-of district
+  
+  foreach enumerate stops-of district [ let current_index (? + 1) mod length stops-of district
+    let current_element item current_index stops-of district
+    if previous_element = previous_stop and current_element = location? [
+      set next_stop_in_district item ((current_index + 1) mod length stops-of district) stops-of district ]
+    set previous_element current_element ]
+  
+  report next_stop_in_district
+end
+
+to-report next-stop-to-district?
+  let closest_district_stop false
+  let lowest_cost 999999
+  
+  foreach stops-of district [ let district_stop ?
+    let cost item 1 table:get dijkstra (list location? district_stop)
+    if cost < lowest_cost [
+      set lowest_cost cost
+      set closest_district_stop district_stop]]
+  
+  report first first table:get dijkstra (list location? closest_district_stop)
+end
+
+to mention [message passenger]
+  show (word message " passenger "id-of passenger " (dest=" destination-of passenger ") at stop " current_stop) 
+end
