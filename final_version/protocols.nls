@@ -284,7 +284,7 @@ to end-panic
 end
 
 to-report fullness? report length bus_passengers / capacity? end
-to-report panic? report fullness? >= 0.8 end
+to-report panic? report fullness? >= panic/threshold end
 
 ; Getter functions for helper tuple
 to-report helper-ID-of       [helper] report item 0 helper end

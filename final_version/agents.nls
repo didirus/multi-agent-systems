@@ -83,6 +83,7 @@ buses-own [
   panic/newest_bus                  ; The ID of the newest bus right before I bought one.
   panic/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out.
   panic/capacity_preferences        ; List of voted preferences for capacity of the bus I'm going to buy.
+  panic/threshold                   ; The percentage of capacity that needs to be full for a bus to panic.
   
   discovery.this_is_my_id
   

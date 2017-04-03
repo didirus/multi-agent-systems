@@ -61,6 +61,7 @@ to init-buses
   set panic/other_buyers []
   set panic/oldest_requester 9999
   set panic/capacity_preferences []
+  set panic/threshold 0.8
   
   set discovery.this_is_my_id "this_is_my_id"
   
