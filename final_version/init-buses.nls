@@ -34,33 +34,33 @@ to init-buses
   
   ; _________
   ; PROTOCOLS
-  set overloaded:UNINITIATED "uninitiated"
-  set overloaded:ABOUT_TO_BUY "about_to_buy"
-  set overloaded:INSTRUCTING "instructing"
-  set overloaded:COLLIDED "collided"
-  set overloaded:BOUGHT_SIMULTANEOUSLY "bought_simultaneously"
-  set overloaded:AWAITING_RESPONSE "awaiting_reponse"
-  set overloaded:AWAITING_VOTES "awaiting_votes"
-  set overloaded:COLLECTING_VOTES "collecting_votes"
-  set overloaded:RESOLVING_SIMULTANEOUS_BUY "resolving_simultaneous_buy"
+  set panic:UNINITIATED "uninitiated"
+  set panic:ABOUT_TO_BUY "about_to_buy"
+  set panic:INSTRUCTING "instructing"
+  set panic:COLLIDED "collided"
+  set panic:BOUGHT_SIMULTANEOUSLY "bought_simultaneously"
+  set panic:AWAITING_RESPONSE "awaiting_reponse"
+  set panic:AWAITING_VOTES "awaiting_votes"
+  set panic:COLLECTING_VOTES "collecting_votes"
+  set panic:RESOLVING_SIMULTANEOUS_BUY "resolving_simultaneous_buy"
   
-  set overloaded.want_to_buy "want to buy"
-  set overloaded.do_not_buy "do not buy"
-  set overloaded.we_collided "we collided"
-  set overloaded.come_to_district "come to district"
-  set overloaded.we_both_bought "we both bought"
-  set overloaded.cast_your_vote "cast your vote"
-  set overloaded.here_is_my_vote "here is my vote"
+  set panic.want_to_buy "want to buy"
+  set panic.do_not_buy "do not buy"
+  set panic.we_collided "we collided"
+  set panic.come_to_district "come to district"
+  set panic.we_both_bought "we both bought"
+  set panic.cast_your_vote "cast your vote"
+  set panic.here_is_my_vote "here is my vote"
   
-  set overloaded/state overloaded:UNINITIATED
-  set overloaded/quiet_district_threshold 2
-  set overloaded/timeout 20
-  set overloaded/timer 0
-  set overloaded/timer 0
-  set overloaded/oldest_buyer 9999
-  set overloaded/other_buyers []
-  set overloaded/oldest_requester 9999
-  set overloaded/capacity_preferences []
+  set panic/state panic:UNINITIATED
+  set panic/quiet_district_threshold 2
+  set panic/timeout 20
+  set panic/timer 0
+  set panic/timer 0
+  set panic/oldest_buyer 9999
+  set panic/other_buyers []
+  set panic/oldest_requester 9999
+  set panic/capacity_preferences []
   
   set discovery.this_is_my_id "this_is_my_id"
   

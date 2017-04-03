@@ -2,61 +2,61 @@
 ; or 'follow'. 'Follow' means it responds according to the protocol to
 ; an incoming message. 'Lead' means it takes action according to the
 ; protocol, not being prompted by an incoming message. Accordingly,
-; for each protocol, for instance 'overloaded', there is a lead
-; procedure `lead-overloaded` and a follow function `follow-overloaded`.
+; for each protocol, for instance 'panic', there is a lead
+; procedure `lead-panic` and a follow function `follow-panic`.
 
 to lead-protocols ; Loops through the lead procedures of all protocols.
-  lead-overloaded
+  lead-panic
   lead-auction
   lead-money
 end
 
 to clear-temporary-memory
-  reset-overloaded/other_district_blockers
-  set overloaded/other_buyers []
-  set overloaded/oldest_buyer 9999
-  set overloaded/oldest_requester 9999
-  set overloaded/capacity_preferences []
+  reset-panic/other_district_blockers
+  set panic/other_buyers []
+  set panic/oldest_buyer 9999
+  set panic/oldest_requester 9999
+  set panic/capacity_preferences []
 end
 
-to lead-overloaded
+to lead-panic
   ; keep track of timers
   handle-timers
   
-  if overloaded/state = overloaded:UNINITIATED [
-    if full? and not (overloaded/timer > 0) [
+  if panic/state = panic:UNINITIATED [
+    if panic? and not (panic/timer > 0) [
       
-      ; I'm overloaded and waited long enough, so initiate protocol!
+      ; I'm panic and waited long enough, so initiate protocol!
       
-      broadcast "overloaded" overloaded.want_to_buy district  ; Broadcast 'want to buy' to all other buses.
-      set overloaded/state overloaded:AWAITING_RESPONSE]      ; Change internal protocol state accordingly.
+      broadcast "panic" panic.want_to_buy district  ; Broadcast 'want to buy' to all other buses.
+      set panic/state panic:AWAITING_RESPONSE]      ; Change internal protocol state accordingly.
     stop]
   
-  if overloaded/state = overloaded:AWAITING_RESPONSE [
+  if panic/state = panic:AWAITING_RESPONSE [
     
     ; In the previous tick I decided to buy a bus. This tick I
     ; am awaiting responses of other buses. I will switch my state to
     ; indicate that I will try and buy a bus next tick 
     
-    set overloaded/state overloaded:ABOUT_TO_BUY
+    set panic/state panic:ABOUT_TO_BUY
     stop]
   
-  if overloaded/state = overloaded:COLLIDED [
+  if panic/state = panic:COLLIDED [
     
     ; During this tick I've received messages of other buses, with the same district as mine,
     ; that (in the previous tick) decided to buy a bus. I can now decide which of us will buy
     ; a bus, based on our age: the oldest bus wil try to buy a bus next tick (indicated by my new
     ; state). Other buses will now stop their protocol.
     
-    ifelse bus_id < overloaded/oldest_requester [
-      set overloaded/state overloaded:ABOUT_TO_BUY
+    ifelse bus_id < panic/oldest_requester [
+      set panic/state panic:ABOUT_TO_BUY
       if debug_messages [ debug (word "I am the oldest bus. Will try to buy next tick.")] ]
     [ 
       if debug_messages [ debug (word "I am not the oldest bus. Quitting protocol.")]
-      end-overloaded ]
+      end-panic ]
     stop]
   
-  if overloaded/state = overloaded:ABOUT_TO_BUY [
+  if panic/state = panic:ABOUT_TO_BUY [
     
     ; I will check my stored messages if other districts can help out, if so I will
     ; call someone from another district to come and help me. Else: buy a new bus.
@@ -69,104 +69,104 @@ to lead-overloaded
       let bus_to_be_reallocated   get-least-busy most_quiet_district
       
       if debug_messages [ debug (word "D" most_quiet_district " can help me out! I will assign a random bus of that district to mine, which is bus " bus_to_be_reallocated ".")]
-      send bus_to_be_reallocated "overloaded" overloaded.come_to_district district
-      end-overloaded]
+      send bus_to_be_reallocated "panic" panic.come_to_district district
+      end-panic]
     
     ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
     [ if debug_messages [ debug (word "No answers from my district. No other districts have enough capacity.")]
-      broadcast "overloaded" overloaded.cast_your_vote false
-      set overloaded/state overloaded:AWAITING_VOTES]
+      broadcast "panic" panic.cast_your_vote false
+      set panic/state panic:AWAITING_VOTES]
     
     stop]
   
-  if overloaded/state = overloaded:AWAITING_VOTES [
+  if panic/state = panic:AWAITING_VOTES [
     
     ; In the previous tick I asked other buses to vote on the 
     ; capacity of the bus I'm going to buy. This tick I am receiving
     ; those votes. I will switch my state to indicate that I will 
     ; collect and aggregate them next vote.
     
-    set overloaded/state overloaded:COLLECTING_VOTES
+    set panic/state panic:COLLECTING_VOTES
     stop]
   
-  if overloaded/state = overloaded:COLLECTING_VOTES [
-    let preferred_capacity social-choice-function overloaded/capacity_preferences
+  if panic/state = panic:COLLECTING_VOTES [
+    let preferred_capacity social-choice-function panic/capacity_preferences
     
-    ifelse full? [
+    ifelse panic? [
       add-bus preferred_capacity
       
-      set overloaded/newest_bus newest-bus?
-      set overloaded/state overloaded:INSTRUCTING
+      set panic/newest_bus newest-bus?
+      set panic/state panic:INSTRUCTING
       
       if debug_messages [ debug (word "I bought a " bus-type-to-string preferred_capacity " bus.")]]
     [
       if debug_messages [ debug (word "I was about to buy a " bus-type-to-string preferred_capacity " bus, but had capacity again.")]
-      end-overloaded]
+      end-panic]
     stop]
   
-  if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
-    ifelse newest-bus? - overloaded/newest_bus = 1 [
+  if panic/state = panic:INSTRUCTING and panic/newest_bus != newest-bus? [
+    ifelse newest-bus? - panic/newest_bus = 1 [
       
       ; I just ordered a new bus, and I now see it has been
       ; delivered. So I need to instruct it to drive in my district.
       
-      send newest-bus? "overloaded" overloaded.come_to_district district
-      end-overloaded]
+      send newest-bus? "panic" panic.come_to_district district
+      end-panic]
     [
       ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
       ; need to identify each other, in order to decide who of us will instruct the new
       ; buses to which districts they belong.
       
-      broadcast "overloaded" overloaded.we_both_bought district
-      set overloaded/state overloaded:BOUGHT_SIMULTANEOUSLY]  
+      broadcast "panic" panic.we_both_bought district
+      set panic/state panic:BOUGHT_SIMULTANEOUSLY]  
     stop]
   
-  if overloaded/state = overloaded:RESOLVING_SIMULTANEOUS_BUY [
-    if bus_id < overloaded/oldest_buyer [
+  if panic/state = panic:RESOLVING_SIMULTANEOUS_BUY [
+    if bus_id < panic/oldest_buyer [
       
       ; Apparently I was the oldest of the simultaneous buyers. Now that I know everyone's district,
       ; I will instruct the new buses where to go.
 
       ; Decide for the first bus to go to my district.
-      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_district district
+      send (panic/newest_bus + 1) "panic" panic.come_to_district district
       
       ; Distribute other buses accordingly.
-      foreach overloaded/other_buyers [ let other_bus_district ?
-        let index position other_bus_district overloaded/other_buyers
-        send (overloaded/newest_bus + 2 + index) "overloaded" overloaded.come_to_district other_bus_district]]
+      foreach panic/other_buyers [ let other_bus_district ?
+        let index position other_bus_district panic/other_buyers
+        send (panic/newest_bus + 2 + index) "panic" panic.come_to_district other_bus_district]]
     
-    end-overloaded ; For all buses involved, end the protocol.
+    end-panic ; For all buses involved, end the protocol.
     stop]
 end
 
-to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
+to follow-panic [sender body details] ; This function is called after incoming 'panic' messages.
   
-  if body = overloaded.want_to_buy and overloaded/state = overloaded:UNINITIATED and district != false [
+  if body = panic.want_to_buy and panic/state = panic:UNINITIATED and district != false [
     
     ; Somebody wants to buy, but I still
     ; have capacity. So I report my district and busyness level
 
-    if not full? [send sender "overloaded" overloaded.do_not_buy (list district fullness?)]
+    if not panic? [send sender "panic" panic.do_not_buy (list district fullness?)]
     stop]
   
-  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:AWAITING_RESPONSE [
+  if body = panic.want_to_buy and details = district and panic/state = panic:AWAITING_RESPONSE [
     
     ; A fellow district member also wants to buy. Collision!
     ; We keep track of the oldest bus, which is the one responsible for buying a bus
     
     if debug_messages [ debug (word "I collided with bus " sender " during buying. We will resolve this conflict.")] 
     
-    if sender < overloaded/oldest_requester [ set overloaded/oldest_requester sender ]
-    set overloaded/state overloaded:COLLIDED
+    if sender < panic/oldest_requester [ set panic/oldest_requester sender ]
+    set panic/state panic:COLLIDED
     stop]
   
-  if body = overloaded.do_not_buy [
+  if body = panic.do_not_buy [
     ifelse district-of details = district [
       
       ; A fellow district member still has capacity, so I don't have to buy.
       
       if debug_messages [ debug (word "Bus " sender " from D" district-of details " told me not to buy a bus.")] 
-      end-overloaded]
+      end-panic]
     [ 
       ; else: Someone from another district wants to help out
       
@@ -176,45 +176,45 @@ to follow-overloaded [sender body details] ; This function is called after incom
       
       if debug_messages [ debug (word "Bus " sender " from D" district-of details " said he might be available to help.")]  
       
-      let other_district_blockers table:get overloaded/other_district_blockers his_district  ; store in variable: list of current available buses present in his_district
+      let other_district_blockers table:get panic/other_district_blockers his_district  ; store in variable: list of current available buses present in his_district
       set other_district_blockers lput (list his_id his_busyness) other_district_blockers    ; store in tuple [his_id his_busyness], append to the list
-      table:put overloaded/other_district_blockers his_district other_district_blockers]     ; put the updated list back in the hashtable
+      table:put panic/other_district_blockers his_district other_district_blockers]     ; put the updated list back in the hashtable
     
     stop]
   
-  if body = overloaded.come_to_district [
+  if body = panic.come_to_district [
     
     ; I have just been bought, and this message contains the district I should be driving.
     
     get-assigned-to details
-    end-overloaded
+    end-panic
     stop]
 
-  if body = overloaded.we_both_bought and overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
+  if body = panic.we_both_bought and panic/state = panic:BOUGHT_SIMULTANEOUSLY [
     
     ; I detect the others which also simultaneously bought a bus and store their bus IDs
     ; This tick, I will decide which of us will buy the bus
     
     if debug_messages [ debug (word "I bought at the same time as " sender ". We will resolve this conflict.")] 
     
-    if sender < overloaded/oldest_buyer [ set overloaded/oldest_buyer sender ]
-    set overloaded/other_buyers lput details overloaded/other_buyers
-    set overloaded/state overloaded:RESOLVING_SIMULTANEOUS_BUY
+    if sender < panic/oldest_buyer [ set panic/oldest_buyer sender ]
+    set panic/other_buyers lput details panic/other_buyers
+    set panic/state panic:RESOLVING_SIMULTANEOUS_BUY
     
     stop]
   
-  if body = overloaded.cast_your_vote [
-    if fullness? <= 0.25 [ send sender "overloaded" overloaded.here_is_my_vote (list small_bus medium_bus large_bus) stop ]
-    if fullness? <= 0.50 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus small_bus large_bus) stop ]
-    if fullness? <= 0.75 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus large_bus small_bus) stop ]
-    if fullness? <= 1.00 [ send sender "overloaded" overloaded.here_is_my_vote (list large_bus medium_bus small_bus) stop ]
+  if body = panic.cast_your_vote [
+    if fullness? <= 0.25 [ send sender "panic" panic.here_is_my_vote (list small_bus medium_bus large_bus) stop ]
+    if fullness? <= 0.50 [ send sender "panic" panic.here_is_my_vote (list medium_bus small_bus large_bus) stop ]
+    if fullness? <= 0.75 [ send sender "panic" panic.here_is_my_vote (list medium_bus large_bus small_bus) stop ]
+    if fullness? <= 1.00 [ send sender "panic" panic.here_is_my_vote (list large_bus medium_bus small_bus) stop ]
     stop]
     
-  if body = overloaded.here_is_my_vote [
+  if body = panic.here_is_my_vote [
     
-    assert "Received an unexpected capacity preference." overloaded/state = overloaded:COLLECTING_VOTES
+    assert "Received an unexpected capacity preference." panic/state = panic:COLLECTING_VOTES
     
-    set overloaded/capacity_preferences lput details overloaded/capacity_preferences
+    set panic/capacity_preferences lput details panic/capacity_preferences
     stop]
 end
 
@@ -227,8 +227,8 @@ to-report can-another-district-help-out?
     if i != district [
       ; Get list of available helpers from district 'i', store it in variable 'helpers'.
       ; If the length of the list is above the threshold, some district can help out
-      let helpers table:get overloaded/other_district_blockers i 
-      if length helpers >= overloaded/quiet_district_threshold [ set can_help true ]]]
+      let helpers table:get panic/other_district_blockers i 
+      if length helpers >= panic/quiet_district_threshold [ set can_help true ]]]
   
   ; return, boolean: can another district help out or not    
   report can_help
@@ -237,7 +237,7 @@ end
 to-report which-district-can-help-out?
   ; initiate tracker variables
   let most_quiet_district 999             ; keeps track of most quiet district                    
-  let most_quiet_district_busyness 999999 ; keeps track of busyness level of most quiet district            ASSUMPTION: district busyness level will never be > 999999
+  let most_quiet_district_busyness 999999 ; keeps track of busyness level of most quiet district
   
   ; for all other districts
   foreach districts [
@@ -249,9 +249,9 @@ to-report which-district-can-help-out?
       
       ; Get list of available helpers from district 'i', store it in variable 'helpers'.
       ; Items in this list are as tuples: [helper_id helper_busyness_level]
-      let helpers table:get overloaded/other_district_blockers i 
+      let helpers table:get panic/other_district_blockers i 
       
-      if length helpers >= overloaded/quiet_district_threshold [
+      if length helpers >= panic/quiet_district_threshold [
       
         ; Get the busyness level of the entire district 'i', defined as: sum over all busyness values of the available buses
         let district_busyness 0 
@@ -271,20 +271,20 @@ end
 to-report get-least-busy [most_quiet_district]
   ; TEMPORARY: just return a random non-busy district member
   
-  let helpers table:get overloaded/other_district_blockers most_quiet_district ; store the list of available buses from the most quiet district
+  let helpers table:get panic/other_district_blockers most_quiet_district ; store the list of available buses from the most quiet district
   let helper one-of helpers   ; select a random tuple: [his_id his_busyness] from the list
   report helper-ID-of helper  ; report the bus ID which will be reallocated      
 end
 
-to end-overloaded
-  if debug_messages [ debug (word "I am ending the protocol from state '" overloaded/state "'.")]
-  set overloaded/timer overloaded/timeout
-  set overloaded/state overloaded:UNINITIATED
+to end-panic
+  if debug_messages [ debug (word "I am ending the protocol from state '" panic/state "'.")]
+  set panic/timer panic/timeout
+  set panic/state panic:UNINITIATED
   clear-temporary-memory
 end
 
 to-report fullness? report length bus_passengers / capacity? end
-to-report full? report fullness? >= 0.8 end
+to-report panic? report fullness? >= 0.8 end
 
 ; Getter functions for helper tuple
 to-report helper-ID-of       [helper] report item 0 helper end

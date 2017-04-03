@@ -55,34 +55,34 @@ buses-own [
   ; names with . are protocol messages, and names
   ; with / are protocol-specific variables.
   
-  overloaded:UNINITIATED                 ; Protocol not started.
-  overloaded:ABOUT_TO_BUY                ; Start of protocol; just got overloaded.
-  overloaded:INSTRUCTING                 ; Bought a new bus; need to instruct him where to go.
-  overloaded:COLLIDED                    ; Other bus on my track also just overloaded.
-  overloaded:BOUGHT_SIMULTANEOUSLY       ; I detected a simultaneous buy; need to decide who will instruct new buses.
-  overloaded:RESOLVING_SIMULTANEOUS_BUY  ; Resolving simulaneously buying procedure. 
-  overloaded:AWAITING_RESPONSE           ; I want to buy, awaiting responses.
-  overloaded:AWAITING_VOTES              ; I'm waiting for votes on the capacity of the new bus.
-  overloaded:COLLECTING_VOTES            ; Votes are in. Will now aggregate votes and make a decision!
+  panic:UNINITIATED                 ; Protocol not started.
+  panic:ABOUT_TO_BUY                ; Start of protocol; just got panic.
+  panic:INSTRUCTING                 ; Bought a new bus; need to instruct him where to go.
+  panic:COLLIDED                    ; Other bus on my track also just panic.
+  panic:BOUGHT_SIMULTANEOUSLY       ; I detected a simultaneous buy; need to decide who will instruct new buses.
+  panic:RESOLVING_SIMULTANEOUS_BUY  ; Resolving simulaneously buying procedure. 
+  panic:AWAITING_RESPONSE           ; I want to buy, awaiting responses.
+  panic:AWAITING_VOTES              ; I'm waiting for votes on the capacity of the new bus.
+  panic:COLLECTING_VOTES            ; Votes are in. Will now aggregate votes and make a decision!
   
-  overloaded.want_to_buy                 ; Broadcast messages telling fellow track members I just overloaded.
-  overloaded.do_not_buy                  ; Private message telling fellow track member I still have capacity.
-  overloaded.we_collided                 ; Private message telling fellow track member I also want to buy.
-  overloaded.come_to_district            ; Private message telling newly bought bus which track to go.
-  overloaded.we_both_bought              ; Broadcast message to identify simultaneous buyers
-  overloaded.cast_your_vote              ; Broadcast message asking buses to vote for capacity of new bus
-  overloaded.here_is_my_vote             ; Private message containing preference list for new bus capacity
+  panic.want_to_buy                 ; Broadcast messages telling fellow track members I just panic.
+  panic.do_not_buy                  ; Private message telling fellow track member I still have capacity.
+  panic.we_collided                 ; Private message telling fellow track member I also want to buy.
+  panic.come_to_district            ; Private message telling newly bought bus which track to go.
+  panic.we_both_bought              ; Broadcast message to identify simultaneous buyers
+  panic.cast_your_vote              ; Broadcast message asking buses to vote for capacity of new bus
+  panic.here_is_my_vote             ; Private message containing preference list for new bus capacity
   
-  overloaded/quiet_district_threshold    ; A constant; defines the number of non-busy buses in a quiet district.
-  overloaded/state                       ; Keeps track of the protocol state.
-  overloaded/timeout                     ; A constant; determines how long to wait after buying bus.
-  overloaded/timer
-  overloaded/oldest_requester            ; Temporarily store ID of oldest requester.
-  overloaded/other_buyers                ; Temporary store districts of simultaneous buyers.
-  overloaded/oldest_buyer                ; Temporarily store ID of olders buyer.
-  overloaded/newest_bus                  ; The ID of the newest bus right before I bought one.
-  overloaded/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out.
-  overloaded/capacity_preferences        ; List of voted preferences for capacity of the bus I'm going to buy.
+  panic/quiet_district_threshold    ; A constant; defines the number of non-busy buses in a quiet district.
+  panic/state                       ; Keeps track of the protocol state.
+  panic/timeout                     ; A constant; determines how long to wait after buying bus.
+  panic/timer
+  panic/oldest_requester            ; Temporarily store ID of oldest requester.
+  panic/other_buyers                ; Temporary store districts of simultaneous buyers.
+  panic/oldest_buyer                ; Temporarily store ID of olders buyer.
+  panic/newest_bus                  ; The ID of the newest bus right before I bought one.
+  panic/other_district_blockers     ; If I want to buy, keep track of buses of other districts that want to help out.
+  panic/capacity_preferences        ; List of voted preferences for capacity of the bus I'm going to buy.
   
   discovery.this_is_my_id
   

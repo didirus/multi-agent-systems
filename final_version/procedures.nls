@@ -36,7 +36,7 @@ to-report amount-of-waiting-passengers-in [dis]
   report amount
 end
 
-to-report overloaded? ; Returns whether this bus is full.
+to-report full? ; Returns whether this bus is full.
   report capacity? = length bus_passengers
 end
 
@@ -94,7 +94,7 @@ end
 to get-assigned-to [ new_district ]
   if debug_messages [ debug (word "I have been assigned to D" new_district ".")]
   set district new_district
-  reset-overloaded/other_district_blockers
+  reset-panic/other_district_blockers
 end
 
 to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
@@ -191,19 +191,19 @@ to-report determine-junctions? ; Returns table mapping pair of districts to thei
   report junction_table
 end
   
-to reset-overloaded/other_district_blockers
-  set overloaded/other_district_blockers table:make
+to reset-panic/other_district_blockers
+  set panic/other_district_blockers table:make
   foreach districts [
     let i position ? districts
     if i != district [
-      table:put overloaded/other_district_blockers i [] ]] 
+      table:put panic/other_district_blockers i [] ]] 
 end
 
 to handle-timers
   ; handle buy timer
-  if overloaded/timer > 0 [
+  if panic/timer > 0 [
     ; Decrease waiting time to buy new buses.
-    set overloaded/timer overloaded/timer - 1]
+    set panic/timer panic/timer - 1]
 end
 
 to debug [text]

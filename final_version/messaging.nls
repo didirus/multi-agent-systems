@@ -1,6 +1,6 @@
 to check-inbox
   ; Checks protocol of inbox messages, invokes associated 'follow' procedures.
-  ; For instance, procedure `follow-overloaded` for the 'overloaded' protocol.
+  ; For instance, procedure `follow-panic` for the 'panic' protocol.
   
   foreach inbox [ let message ?
     if tick-of message = (ticks - 1) [
@@ -46,14 +46,14 @@ to-report details-of [message] report table:get item 2 message "details" end
 to-report to-string-incoming [message]
   let details details-of message
   
-  if body-of message = overloaded.here_is_my_vote [
+  if body-of message = panic.here_is_my_vote [
     set details map [ bus-type-to-string ? ] details]
   
   report (word "[to: " bus_id ", from: " sender-of message ", protocol: " protocol-of message ", body: " body-of message ", details: " details "]")
 end
 
 to-report to-string-outgoing [recipient protocol body details]
-  if body = overloaded.here_is_my_vote [
+  if body = panic.here_is_my_vote [
     set details map [ bus-type-to-string ? ] details]
   
   report (word "[to: " recipient ", protocol: " protocol ", body: " body ", details:" details "]")

@@ -20,7 +20,7 @@ to-report dominant-behavior?
     if any bus_passengers (task wants-to-leave) [report b>UNLOAD]
     
     ; If at stop, and no passenger wants to leave, but any passenger wants to enter, fire Load.
-    if not overloaded? and any get-passengers-at-stop current_stop (task wants-to-enter) [report b>LOAD] ]
+    if not full? and any get-passengers-at-stop current_stop (task wants-to-enter) [report b>LOAD] ]
   
   ; If at stop, but no one wants to either enter or leave, fire Drive.
   report b>DRIVE
@@ -74,6 +74,7 @@ to-report id-of [passenger] report item 0 passenger end
 
 ; ________________
 ; BEHAVIOR: UNLOAD
+
 to fire-unload
   foreach bus_passengers [ let passenger ?
     if wants-to-leave passenger [
@@ -89,9 +90,10 @@ to drop-off [passenger] drop-off-passenger id-of passenger end
 
 ; ______________
 ; BEHAVIOR: LOAD
+
 to fire-load
   foreach get-passengers-at-stop current_stop [ let passenger ?
-    if wants-to-enter passenger and not overloaded? [
+    if wants-to-enter passenger and not full? [
       pick-up passenger
       if debug_traffic [mention "Picked up" passenger]]]
 end
@@ -101,6 +103,7 @@ to pick-up [passenger] pick-up-passenger id-of passenger end
 
 ; _______________
 ; BEHAVIOR: DRIVE
+
 to fire-drive travel-to next-stop? end
 
 to-report next-stop?
