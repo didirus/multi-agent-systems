@@ -90,16 +90,6 @@ buses-own [
   discovery/colleagues
   discovery/oldest_bus
   
-  money.request_payment
-  money.here_is_my_money
-  
-  money/balance 
-  money/cost_per_waiting_passenger
-  money/dropped_of_this_tick
-  money/payment_per_drop_off
-  
-  auction::TYPE
-  
   auction:UNINITIATED                    ; Protocol not started.
   auction:AWAITING_RESPONSE              ; I want to auction myself, awaiting responses.
   auction:ABOUT_TO_AUCTION
@@ -111,21 +101,7 @@ buses-own [
   auction/winner
   auction/winning_district
   auction/winning_bid
-  auction/am_I_alone_in_district
-  
-  ;-----
-  ; vickrey 
-  ;-----
-  auction/vickrey_bid
-  
-  ;-----
-  ; english
-  ;-----
-  auction/maximum_duration
-  auction/duration
-  auction/current_bids 
-  auction/improvement
-  auction/bid_range
+  auction/alone_in_district
 ]
 
 to execute-actions

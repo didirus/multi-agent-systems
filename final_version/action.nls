@@ -79,9 +79,6 @@ to fire-unload
   foreach bus_passengers [ let passenger ?
     if wants-to-leave passenger [
       
-      ; TEMPORARY (POSSIBLY): if wants-to-leave, I gain money
-      set money/dropped_of_this_tick (money/dropped_of_this_tick + 1)
-      
       drop-off passenger
       if debug_traffic [mention "Dropped off" passenger]]]
 end

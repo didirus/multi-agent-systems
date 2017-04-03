@@ -68,15 +68,6 @@ to init-buses
   set discovery/oldest_bus 24
   set discovery/colleagues range discovery/oldest_bus bus_id
   
-  set money.request_payment "I request money"
-  set money.here_is_my_money "here is my money" 
-  
-  set money/balance 0
-  set money/cost_per_waiting_passenger 0.05
-  set money/dropped_of_this_tick 0
-  set money/payment_per_drop_off 100
-  
-  set auction::TYPE             "vickrey"            ; Choose type of auction: either vickrey or english
   set auction:UNINITIATED       "uninitiated"        ; Protocol not started.
   set auction:AWAITING_RESPONSE "awaiting_response"  ; I want to auction myself, awaiting responses.
   set auction:ABOUT_TO_AUCTION  "about_to_auction"
@@ -88,21 +79,7 @@ to init-buses
   set auction/winner false
   set auction/winning_district false
   set auction/winning_bid -99
-  set auction/am_I_alone_in_district true
-  
-  ;-----
-  ; vickrey 
-  ;-----
-  set auction/vickrey_bid -99
-  
-  ;-----
-  ; english
-  ;-----
-  set auction/maximum_duration 3
-  set auction/duration 0 
-  set auction/bid_range 0.05 
-  set auction/current_bids table:make 
-  set auction/improvement false
+  set auction/alone_in_district true
   
   ; _________
   ; BEHAVIORS

@@ -8,7 +8,6 @@
 to lead-protocols ; Loops through the lead procedures of all protocols.
   lead-panic
   lead-auction
-  lead-money
 end
 
 to clear-temporary-memory

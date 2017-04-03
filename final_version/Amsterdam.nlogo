@@ -260,45 +260,10 @@ to go
       set-time
       update-passengers-statistics
       update-bus-stops
-
-      ; --------- TEMPORARY ---------
-      let money_this_tick 0
-
-      set average_balance_district_0 []
-      set average_balance_district_1 []
-      set average_balance_district_2 []
-
-      set capacity_in_district_0 0
-      set capacity_in_district_1 0
-      set capacity_in_district_2 0
-
       ask buses [
         execute-actions
-
-        set waiting_in_district_0 amount-of-waiting-passengers-in 0
-        set waiting_in_district_1 amount-of-waiting-passengers-in 1
-        set waiting_in_district_2 amount-of-waiting-passengers-in 2
-
-        if district = 0 [set capacity_in_district_0 capacity_in_district_0 + capacity?]
-        if district = 1 [set capacity_in_district_1 capacity_in_district_1 + capacity?]
-        if district = 2 [set capacity_in_district_2 capacity_in_district_2 + capacity?]
-
-        if district = 0 [ set average_balance_district_0 lput money/balance average_balance_district_0 ]
-        if district = 1 [ set average_balance_district_1 lput money/balance average_balance_district_1 ]
-        if district = 2 [ set average_balance_district_2 lput money/balance average_balance_district_2 ]
-
-        set money_this_tick money_this_tick + money/balance
       ]
-
-      ifelse length average_balance_district_0 != 0 [set average_balance_district_0 mean average_balance_district_0][set average_balance_district_0 0]
-      ifelse length average_balance_district_1 != 0 [set average_balance_district_1 mean average_balance_district_1][set average_balance_district_1 0]
-      ifelse length average_balance_district_2 != 0 [set average_balance_district_2 mean average_balance_district_2][set average_balance_district_2 0]
-
-      ifelse count buses > 0 [set average_money (money_this_tick / count buses )][set average_money 0]
-
       add-buses
-      ; -----------------------------
-
     ]
   ]
 end
