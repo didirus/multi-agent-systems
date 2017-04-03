@@ -1,0 +1,235 @@
+; This file contains all kinds of auxiliary procedures.
+
+to-report newest-bus? ; Returns the ID of the newest bus.
+  report max fput bus_id discovery/colleagues ; ID of every colleague + my own ID
+end
+
+to-report only-bus? ; Returns whether I'm the only bus. Implies I'm the first bus.
+  report length discovery/colleagues = 0
+end
+
+to-report one-of-the-first-buses?
+  ; Returns whether I'm one of the initial buses. The amount of initial
+  ; buses is the amount of districts. In other words: when all initial
+  ; buses have been created, each district has one bus.
+  report bus_id - discovery/oldest_bus < length districts
+end
+ 
+to-report any-passengers? ; Returns whether there are waiting passengers.
+  ; TEMPORARY
+  ;report any? bus_stops with [length passengers_waiting > 0]
+  
+  ; Count amount of waiting passengers
+  let amount 0
+  foreach districts [ let dis ?
+    let index position dis districts
+    set amount amount + amount-of-waiting-passengers-in index]
+   
+   ;If no one is waiting and I don't have passengers, report false
+  report amount > 0 or length bus_passengers > 0
+end
+
+to-report amount-of-waiting-passengers-in [dis]
+  
+  let busstops remove-duplicates item dis districts
+  let amount 0
+  
+  foreach busstops [ let busstop ?
+    set amount amount + length get-passengers-at-stop busstop]
+  report amount
+end
+
+to-report overloaded? ; Returns whether this bus is full.
+  report capacity? = length bus_passengers
+end
+
+to-report capacity? ; Returns my capacity according to my bus type.
+  if bus_type = small_bus  [ report capacity_type_1 ]
+  if bus_type = medium_bus [ report capacity_type_2 ]
+  if bus_type = large_bus  [ report capacity_type_3 ]
+end
+
+to-report bus-type-to-string [ some_bus_type ]
+  if some_bus_type = small_bus  [ report "small" ]
+  if some_bus_type = medium_bus [ report "medium" ]
+  if some_bus_type = large_bus  [ report "large" ]
+end
+
+to-report home? ; Returns whether I'm currently in my district.
+  report member? location? stops-of district
+end
+
+to-report stops-of [ some_district ]
+  report item some_district districts
+end
+
+to-report location?
+  if in-transit? [ warn "Procedure `location?` used while in transit (not at bus stop)." ]
+  report current_stop
+end
+
+to-report at-junction? ; Returns whether I'm currently at a junction.
+  let boolean false
+  
+  ; for each district list/set
+  foreach districts [
+    let pos position ? districts
+    
+    ; for all other districts
+    if pos != district [
+      
+      ; if I'm at any junction, return true
+      if member? current_stop table:get junctions (list district pos) [
+        set boolean true ]]]
+  
+  ; return outcome
+  report boolean
+end
+
+to-report in-transit?
+  report not (next_stop = -1 or next_stop = false)
+end
+
+to-report assigned-to-district? ; Returns whether I'm currently assigned to a district.
+  report district != false
+end
+
+to get-assigned-to [ new_district ]
+  if debug_messages [ debug (word "I have been assigned to D" new_district ".")]
+  set district new_district
+  reset-overloaded/other_district_blockers
+end
+
+to-report in-my-district [destination] ; Returns whether `destination` is stop in my district.
+  report member? destination item district districts
+end
+
+to-report social-choice-function [ preference_orders ] ; Wrapper around the actual social choice function.
+  report (runresult social_choice_function preference_orders)
+end
+
+to-report nauru-count [ preference_orders ]
+  ; Aggregates `preferences_orders` according to the Nauru count,
+  ; which is an alternative version of the Borda count that discounts
+  ; lower-ranked votes. Instead of awarding 2, 1 or 0 points for
+  ; being ranked as #1, #2 or #3 respectively, it awards 1, 1/2 or
+  ; 1/3 points. See https://en.wikipedia.org/wiki/Borda_count#Variants.
+  
+  let scores table:make
+  
+  foreach preference_orders [ let preference_order ?
+    foreach enumerate preference_order [ let index ? let rank index + 1
+      let candidate item index preference_order
+      table:increment scores candidate 1 / rank ]]
+  
+  report table:max scores
+end
+
+to table:increment [ table key addition ] ; Adds `addition` to the value of `key` in `table`.
+  
+  ; If `key` is not yet present in `table`, defaults its value to 0.
+  ; So if `some_table` is empty, `table_increment some_table some_key
+  ; 5` will result in key `some_key` having value 5.
+  
+  if not table:has-key? table key [ table:put table key 0 ]
+  let old_value table:get table key
+  table:put table key old_value + addition
+end
+    
+to-report table:max [ table ] ; Returns the key having the largest value in `table`.
+  let tuples table:to-list table
+  
+  let max_key key-of first tuples
+  let max_value value-of first tuples
+  
+  foreach tuples [ let tuple ?
+    if value-of tuple > max_value [
+      set max_key key-of tuple
+      set max_value value-of tuple ]]
+  
+  report max_key
+end
+
+to-report key-of [ table_tuple ] report item 0 table_tuple end
+to-report value-of [ table_tuple ] report item 1 table_tuple end
+
+to-report intersect [a b] ; Returns intersection of lists `a` and `b`.
+  report (filter [ member? ? b ] a)
+end
+
+to-report any [collection predicate] ; Returns whether `predicate` is true for each element of `collection`.
+  report not empty? collection and reduce [?1 or (runresult predicate ?2)] (fput false collection)
+end
+
+to-report successor-of [element collection] ; Returns the successor of `element` in `collection`.
+  assert (word "`successor-of` called, but `" element "` is not an element of `" collection "`.") member? element collection
+  report item ((position element collection + 1) mod length collection) collection
+end
+
+to-report range [ from until ]
+  let the_range []
+  let i from
+  while [i < until] [
+    set the_range lput i the_range
+    set i i + 1]
+  report the_range
+end
+
+to-report range-until [ until ]
+  report range 0 until
+end
+
+to-report enumerate [ collection ]
+  report range-until length collection
+end
+
+to-report determine-junctions? ; Returns table mapping pair of districts to their overlapping stops
+  let junction_table table:make
+  foreach enumerate districts [ let district_a ?
+    foreach enumerate districts [ let district_b ?
+      if district_a != district_b [
+        table:put junction_table (list district_a district_b)
+         reduce intersect (list stops-of district_a stops-of district_b) ]]]
+  
+  report junction_table
+end
+  
+to reset-overloaded/other_district_blockers
+  set overloaded/other_district_blockers table:make
+  foreach districts [
+    let i position ? districts
+    if i != district [
+      table:put overloaded/other_district_blockers i [] ]] 
+end
+
+to handle-timers
+  ; handle buy timer
+  if overloaded/timer > 0 [
+    ; Decrease waiting time to buy new buses.
+    set overloaded/timer overloaded/timer - 1]
+end
+
+to debug [text]
+  let preamble ""
+  
+  if debug_show_ticks [ set preamble (word preamble "[" ticks "]")]
+  
+  if debug_show_districts [
+    ifelse assigned-to-district? [ 
+      set preamble (word preamble "[D" district "]")]
+    [
+      set preamble (word preamble "[--]")]]
+  
+  show (word preamble " " text)
+end
+
+to warn [text]
+  mark
+  debug (word "WARNING! " text)
+  mark
+end
+
+to assert [ text predicate ] if not predicate [ warn text ] end
+
+to mark print marker end
+to mark-personal debug marker end

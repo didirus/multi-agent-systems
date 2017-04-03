@@ -1,0 +1,299 @@
+; This file contains all protocols. Given a protocol, a bus can 'lead'
+; or 'follow'. 'Follow' means it responds according to the protocol to
+; an incoming message. 'Lead' means it takes action according to the
+; protocol, not being prompted by an incoming message. Accordingly,
+; for each protocol, for instance 'overloaded', there is a lead
+; procedure `lead-overloaded` and a follow function `follow-overloaded`.
+
+to lead-protocols ; Loops through the lead procedures of all protocols.
+  lead-overloaded
+  lead-auction
+  lead-money
+end
+
+to clear-temporary-memory
+  reset-overloaded/other_district_blockers
+  set overloaded/other_buyers []
+  set overloaded/oldest_buyer 9999
+  set overloaded/oldest_requester 9999
+  set overloaded/capacity_preferences []
+end
+
+to lead-overloaded
+  ; keep track of timers
+  handle-timers
+  
+  if overloaded/state = overloaded:UNINITIATED [
+    if full? and not (overloaded/timer > 0) [
+      
+      ; I'm overloaded and waited long enough, so initiate protocol!
+      
+      broadcast "overloaded" overloaded.want_to_buy district  ; Broadcast 'want to buy' to all other buses.
+      set overloaded/state overloaded:AWAITING_RESPONSE]      ; Change internal protocol state accordingly.
+    stop]
+  
+  if overloaded/state = overloaded:AWAITING_RESPONSE [
+    
+    ; In the previous tick I decided to buy a bus. This tick I
+    ; am awaiting responses of other buses. I will switch my state to
+    ; indicate that I will try and buy a bus next tick 
+    
+    set overloaded/state overloaded:ABOUT_TO_BUY
+    stop]
+  
+  if overloaded/state = overloaded:COLLIDED [
+    
+    ; During this tick I've received messages of other buses, with the same district as mine,
+    ; that (in the previous tick) decided to buy a bus. I can now decide which of us will buy
+    ; a bus, based on our age: the oldest bus wil try to buy a bus next tick (indicated by my new
+    ; state). Other buses will now stop their protocol.
+    
+    ifelse bus_id < overloaded/oldest_requester [
+      set overloaded/state overloaded:ABOUT_TO_BUY
+      if debug_messages [ debug (word "I am the oldest bus. Will try to buy next tick.")] ]
+    [ 
+      if debug_messages [ debug (word "I am not the oldest bus. Quitting protocol.")]
+      end-overloaded ]
+    stop]
+  
+  if overloaded/state = overloaded:ABOUT_TO_BUY [
+    
+    ; I will check my stored messages if other districts can help out, if so I will
+    ; call someone from another district to come and help me. Else: buy a new bus.
+    
+    ; Check for the most quiet district. If another district is quiet enough, command
+    ; a bus to come to my district.
+    
+    ifelse can-another-district-help-out? [
+      let most_quiet_district     which-district-can-help-out?
+      let bus_to_be_reallocated   get-least-busy most_quiet_district
+      
+      if debug_messages [ debug (word "D" most_quiet_district " can help me out! I will assign a random bus of that district to mine, which is bus " bus_to_be_reallocated ".")]
+      send bus_to_be_reallocated "overloaded" overloaded.come_to_district district
+      end-overloaded]
+    
+    ; else: no other district is quiet enough to exchange buses, now decide to buy a bus
+    [ if debug_messages [ debug (word "No answers from my district. No other districts have enough capacity.")]
+      broadcast "overloaded" overloaded.cast_your_vote false
+      set overloaded/state overloaded:AWAITING_VOTES]
+    
+    stop]
+  
+  if overloaded/state = overloaded:AWAITING_VOTES [
+    
+    ; In the previous tick I asked other buses to vote on the 
+    ; capacity of the bus I'm going to buy. This tick I am receiving
+    ; those votes. I will switch my state to indicate that I will 
+    ; collect and aggregate them next vote.
+    
+    set overloaded/state overloaded:COLLECTING_VOTES
+    stop]
+  
+  if overloaded/state = overloaded:COLLECTING_VOTES [
+    let preferred_capacity social-choice-function overloaded/capacity_preferences
+    
+    ifelse full? [
+      add-bus preferred_capacity
+      
+      set overloaded/newest_bus newest-bus?
+      set overloaded/state overloaded:INSTRUCTING
+      
+      if debug_messages [ debug (word "I bought a " bus-type-to-string preferred_capacity " bus.")]]
+    [
+      if debug_messages [ debug (word "I was about to buy a " bus-type-to-string preferred_capacity " bus, but had capacity again.")]
+      end-overloaded]
+    stop]
+  
+  if overloaded/state = OVERLOADED:INSTRUCTING and overloaded/newest_bus != newest-bus? [
+    ifelse newest-bus? - overloaded/newest_bus = 1 [
+      
+      ; I just ordered a new bus, and I now see it has been
+      ; delivered. So I need to instruct it to drive in my district.
+      
+      send newest-bus? "overloaded" overloaded.come_to_district district
+      end-overloaded]
+    [
+      ; I just bought a new bus, but apparently, others did as well. We (the buyers) now
+      ; need to identify each other, in order to decide who of us will instruct the new
+      ; buses to which districts they belong.
+      
+      broadcast "overloaded" overloaded.we_both_bought district
+      set overloaded/state overloaded:BOUGHT_SIMULTANEOUSLY]  
+    stop]
+  
+  if overloaded/state = overloaded:RESOLVING_SIMULTANEOUS_BUY [
+    if bus_id < overloaded/oldest_buyer [
+      
+      ; Apparently I was the oldest of the simultaneous buyers. Now that I know everyone's district,
+      ; I will instruct the new buses where to go.
+
+      ; Decide for the first bus to go to my district.
+      send (overloaded/newest_bus + 1) "overloaded" overloaded.come_to_district district
+      
+      ; Distribute other buses accordingly.
+      foreach overloaded/other_buyers [ let other_bus_district ?
+        let index position other_bus_district overloaded/other_buyers
+        send (overloaded/newest_bus + 2 + index) "overloaded" overloaded.come_to_district other_bus_district]]
+    
+    end-overloaded ; For all buses involved, end the protocol.
+    stop]
+end
+
+to follow-overloaded [sender body details] ; This function is called after incoming 'overloaded' messages.
+  
+  if body = overloaded.want_to_buy and overloaded/state = overloaded:UNINITIATED and district != false [
+    
+    ; Somebody wants to buy, but I still
+    ; have capacity. So I report my district and busyness level
+
+    if not full? [send sender "overloaded" overloaded.do_not_buy (list district fullness?)]
+    stop]
+  
+  if body = overloaded.want_to_buy and details = district and overloaded/state = overloaded:AWAITING_RESPONSE [
+    
+    ; A fellow district member also wants to buy. Collision!
+    ; We keep track of the oldest bus, which is the one responsible for buying a bus
+    
+    if debug_messages [ debug (word "I collided with bus " sender " during buying. We will resolve this conflict.")] 
+    
+    if sender < overloaded/oldest_requester [ set overloaded/oldest_requester sender ]
+    set overloaded/state overloaded:COLLIDED
+    stop]
+  
+  if body = overloaded.do_not_buy [
+    ifelse district-of details = district [
+      
+      ; A fellow district member still has capacity, so I don't have to buy.
+      
+      if debug_messages [ debug (word "Bus " sender " from D" district-of details " told me not to buy a bus.")] 
+      end-overloaded]
+    [ 
+      ; else: Someone from another district wants to help out
+      
+      let his_district    district-of details
+      let his_busyness    busyness-of details
+      let his_id          sender 
+      
+      if debug_messages [ debug (word "Bus " sender " from D" district-of details " said he might be available to help.")]  
+      
+      let other_district_blockers table:get overloaded/other_district_blockers his_district  ; store in variable: list of current available buses present in his_district
+      set other_district_blockers lput (list his_id his_busyness) other_district_blockers    ; store in tuple [his_id his_busyness], append to the list
+      table:put overloaded/other_district_blockers his_district other_district_blockers]     ; put the updated list back in the hashtable
+    
+    stop]
+  
+  if body = overloaded.come_to_district [
+    
+    ; I have just been bought, and this message contains the district I should be driving.
+    
+    get-assigned-to details
+    end-overloaded
+    stop]
+
+  if body = overloaded.we_both_bought and overloaded/state = overloaded:BOUGHT_SIMULTANEOUSLY [
+    
+    ; I detect the others which also simultaneously bought a bus and store their bus IDs
+    ; This tick, I will decide which of us will buy the bus
+    
+    if debug_messages [ debug (word "I bought at the same time as " sender ". We will resolve this conflict.")] 
+    
+    if sender < overloaded/oldest_buyer [ set overloaded/oldest_buyer sender ]
+    set overloaded/other_buyers lput details overloaded/other_buyers
+    set overloaded/state overloaded:RESOLVING_SIMULTANEOUS_BUY
+    
+    stop]
+  
+  if body = overloaded.cast_your_vote [
+    if fullness? <= 0.25 [ send sender "overloaded" overloaded.here_is_my_vote (list small_bus medium_bus large_bus) stop ]
+    if fullness? <= 0.50 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus small_bus large_bus) stop ]
+    if fullness? <= 0.75 [ send sender "overloaded" overloaded.here_is_my_vote (list medium_bus large_bus small_bus) stop ]
+    if fullness? <= 1.00 [ send sender "overloaded" overloaded.here_is_my_vote (list large_bus medium_bus small_bus) stop ]
+    stop]
+    
+  if body = overloaded.here_is_my_vote [
+    
+    assert "Received an unexpected capacity preference." overloaded/state = overloaded:COLLECTING_VOTES
+    
+    set overloaded/capacity_preferences lput details overloaded/capacity_preferences
+    stop]
+end
+
+to-report can-another-district-help-out?
+  ; create tracker variable, keeps track if other districts can help out
+  let can_help false
+  
+  foreach districts [
+    let i position ? districts
+    if i != district [
+      ; Get list of available helpers from district 'i', store it in variable 'helpers'.
+      ; If the length of the list is above the threshold, some district can help out
+      let helpers table:get overloaded/other_district_blockers i 
+      if length helpers >= overloaded/quiet_district_threshold [ set can_help true ]]]
+  
+  ; return, boolean: can another district help out or not    
+  report can_help
+end
+
+to-report which-district-can-help-out?
+  ; initiate tracker variables
+  let most_quiet_district 999             ; keeps track of most quiet district                    
+  let most_quiet_district_busyness 999999 ; keeps track of busyness level of most quiet district            ASSUMPTION: district busyness level will never be > 999999
+  
+  ; for all other districts
+  foreach districts [
+    ; 'i' is now the index in the districts list
+    let i position ? districts
+    
+    ; if it is not my own district
+    if i != district [
+      
+      ; Get list of available helpers from district 'i', store it in variable 'helpers'.
+      ; Items in this list are as tuples: [helper_id helper_busyness_level]
+      let helpers table:get overloaded/other_district_blockers i 
+      
+      if length helpers >= overloaded/quiet_district_threshold [
+      
+        ; Get the busyness level of the entire district 'i', defined as: sum over all busyness values of the available buses
+        let district_busyness 0 
+        foreach helpers [
+          let helper ? ; current helper 
+          let his_busyness helper-busyness-of helper
+          set his_busyness (his_busyness - 1) ; TEMPORARY constant for each helper, subtract 1 from busyness
+          set district_busyness (district_busyness + his_busyness)]
+        
+        ; if threshold of quiet district is reached and a new less busy district is seen, store in tracker variable
+        if district_busyness < most_quiet_district_busyness [
+          set most_quiet_district i
+          set most_quiet_district_busyness district_busyness ]]]]
+  report most_quiet_district
+end
+
+to-report get-least-busy [most_quiet_district]
+  ; TEMPORARY: just return a random non-busy district member
+  
+  let helpers table:get overloaded/other_district_blockers most_quiet_district ; store the list of available buses from the most quiet district
+  let helper one-of helpers   ; select a random tuple: [his_id his_busyness] from the list
+  report helper-ID-of helper  ; report the bus ID which will be reallocated      
+end
+
+to end-overloaded
+  if debug_messages [ debug (word "I am ending the protocol from state '" overloaded/state "'.")]
+  set overloaded/timer overloaded/timeout
+  set overloaded/state overloaded:UNINITIATED
+  clear-temporary-memory
+end
+
+to-report fullness? report length bus_passengers / capacity? end
+to-report full? report fullness? >= 0.8 end
+
+; Getter functions for helper tuple
+to-report helper-ID-of       [helper] report item 0 helper end
+to-report helper-busyness-of [helper] report item 1 helper end
+
+to follow-discovery [sender body details] ; This function is called after incoming 'discovery' messages.
+  
+  if body = discovery.this_is_my_id [
+    ; A new bus introduces himself. I will register his ID in my list of colleagues.    
+    set discovery/colleagues lput sender discovery/colleagues]
+  
+end
